@@ -1,7 +1,9 @@
 'use client';
 
-import Link from 'next/link'
-
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
   ChartBarIcon, 
   UserGroupIcon, 
@@ -10,10 +12,14 @@ import {
   CalendarIcon,
   CheckCircleIcon,
   PlusIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { useToast } from '@/components/ui/toast';
+import { api } from '@/lib/api';
+import type { Candidate, Interview } from '@/lib/validation';
 
 export default function Dashboard() {
   const stats = [

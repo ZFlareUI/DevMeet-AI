@@ -13,6 +13,7 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
+  password      String?   // For credential-based authentication
   role          UserRole  @default(CANDIDATE)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -75,10 +76,12 @@ model Candidate {
   githubUsername  String?
   githubUrl       String?
   resume          String?
+  coverLetter     String?
   position        String
   experience      String
   skills          String // JSON array as string
   status          CandidateStatus @default(APPLIED)
+  createdBy       String?  // Track who created this candidate
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
