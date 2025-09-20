@@ -52,43 +52,67 @@ export default function Dashboard() {
     try {
       setIsLoading(true);
       
-      const [candidatesResponse, interviewsResponse] = await Promise.all([
-        api.candidates.getAll(),
-        api.interviews.getAll()
-      ]);
-
-      if (candidatesResponse.success) {
-        setCandidates(candidatesResponse.data);
-      } else {
-        addToast({ message: candidatesResponse.error || 'Failed to load candidates', type: 'error' });
+      // Check user role and load appropriate data
+      if (!session?.user?.role) {
+        addToast({ message: 'User role not found', type: 'error' });
+        return;
       }
 
-      if (interviewsResponse.success) {
-        setInterviews(interviewsResponse.data);
-      } else {
-        addToast({ message: interviewsResponse.error || 'Failed to load interviews', type: 'error' });
-      }
+      const userRole = session.user.role;
+      
+      // Only load candidates and interviews for authorized roles
+      if (['ADMIN', 'RECRUITER', 'INTERVIEWER'].includes(userRole)) {
+        const [candidatesResponse, interviewsResponse] = await Promise.all([
+          api.candidates.getAll(),
+          api.interviews.getAll()
+        ]);
 
-      // Calculate stats
-      const candidatesData = candidatesResponse.success ? candidatesResponse.data : [];
-      const interviewsData = interviewsResponse.success ? interviewsResponse.data : [];
-      
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      
-      setStats({
-        activeInterviews: interviewsData.filter((i: Interview) => i.status === 'scheduled' || i.status === 'in-progress').length,
-        candidatesInPipeline: candidatesData.filter((c: Candidate) => c.status === 'active').length,
-        interviewsThisMonth: interviewsData.filter((i: Interview) => {
-          const interviewDate = new Date(i.scheduledAt);
-          return interviewDate.getMonth() === currentMonth && interviewDate.getFullYear() === currentYear;
-        }).length,
-        hiredThisMonth: candidatesData.filter((c: Candidate) => {
-          if (c.status !== 'hired' || !c.updatedAt) return false;
-          const hiredDate = new Date(c.updatedAt);
-          return hiredDate.getMonth() === currentMonth && hiredDate.getFullYear() === currentYear;
-        }).length
-      });
+        if (candidatesResponse.success) {
+          setCandidates(candidatesResponse.data);
+        } else {
+          addToast({ message: candidatesResponse.error || 'Failed to load candidates', type: 'error' });
+        }
+
+        if (interviewsResponse.success) {
+          setInterviews(interviewsResponse.data);
+        } else {
+          addToast({ message: interviewsResponse.error || 'Failed to load interviews', type: 'error' });
+        }
+
+        // Calculate stats
+        const candidatesData = candidatesResponse.success ? candidatesResponse.data : [];
+        const interviewsData = interviewsResponse.success ? interviewsResponse.data : [];
+        
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        
+        setStats({
+          activeInterviews: interviewsData.filter((i: Interview) => i.status === 'scheduled' || i.status === 'in-progress').length,
+          candidatesInPipeline: candidatesData.filter((c: Candidate) => c.status === 'active').length,
+          interviewsThisMonth: interviewsData.filter((i: Interview) => {
+            const interviewDate = new Date(i.scheduledAt);
+            return interviewDate.getMonth() === currentMonth && interviewDate.getFullYear() === currentYear;
+          }).length,
+          hiredThisMonth: candidatesData.filter((c: Candidate) => {
+            if (c.status !== 'hired' || !c.updatedAt) return false;
+            const hiredDate = new Date(c.updatedAt);
+            return hiredDate.getMonth() === currentMonth && hiredDate.getFullYear() === currentYear;
+          }).length
+        });
+      } else if (userRole === 'CANDIDATE') {
+        // Load candidate-specific data (their own interviews, applications, etc.)
+        setStats({
+          activeInterviews: 0,
+          candidatesInPipeline: 0,
+          interviewsThisMonth: 0,
+          hiredThisMonth: 0
+        });
+        
+        addToast({ 
+          message: 'Welcome to your candidate dashboard!', 
+          type: 'success' 
+        });
+      }
 
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -191,24 +215,72 @@ export default function Dashboard() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statsConfig.map((stat, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center`}>
-                    <stat.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* Role-based content */}
+        {session.user.role === 'CANDIDATE' ? (
+          // Candidate Dashboard
+          <div className="space-y-8">
+            <div className="text-center py-12">
+              <UserGroupIcon className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Welcome to Your Candidate Portal</h2>
+              <p className="text-lg text-gray-600 mb-8">Track your interview progress and manage your applications</p>
+              
+              {/* Candidate Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6 text-center">
+                    <CalendarIcon className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-gray-900">0</p>
+                    <p className="text-sm text-gray-600">Upcoming Interviews</p>
+                  </CardContent>
+                </Card>
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6 text-center">
+                    <ClipboardDocumentListIcon className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-gray-900">0</p>
+                    <p className="text-sm text-gray-600">Applications</p>
+                  </CardContent>
+                </Card>
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6 text-center">
+                    <ChartBarIcon className="w-8 h-8 text-purple-500 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-gray-900">-</p>
+                    <p className="text-sm text-gray-600">Interview Score</p>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div className="mt-8">
+                <Button className="bg-blue-600 hover:bg-blue-700 mr-4">
+                  <PlusIcon className="w-4 h-4 mr-2" />
+                  Apply for Position
+                </Button>
+                <Button variant="outline">
+                  View My Profile
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          // Recruiter/Admin Dashboard
+          <>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {statsConfig.map((stat, index) => (
+                <Card key={index} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center`}>
+                        <stat.icon className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-600">{stat.label}</p>
+                        <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Recent Interviews */}
@@ -381,38 +453,10 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-
-            {/* System Status */}
-            <Card className="mt-6">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">System Status</h2>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Database</span>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      <span className="text-sm text-green-600">Operational</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">GitHub Integration</span>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      <span className="text-sm text-green-600">Connected</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">AI Interviewer</span>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      <span className="text-sm text-green-600">Ready</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
+        </>
+        )}
       </div>
     </div>
   );
