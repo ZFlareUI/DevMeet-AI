@@ -178,33 +178,33 @@ export default function Dashboard() {
     .slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white/5 backdrop-blur-xl border-b border-white/10 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
                 <span className="text-white font-bold text-sm">DA</span>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">DevMeet AI</h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">DevMeet AI</h1>
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-300" />
                 <input 
                   type="text" 
                   placeholder="Search candidates..." 
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-purple-200 backdrop-blur-sm"
                 />
               </div>
               <Link href="/features">
-                <Button variant="outline">
+                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10">
                   Features
                 </Button>
               </Link>
               <Link href="/interviews/create">
-                <Button className="bg-blue-600 hover:bg-blue-700">
+                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg">
                   <PlusIcon className="w-4 h-4 mr-2" />
                   New Interview
                 </Button>
@@ -220,42 +220,57 @@ export default function Dashboard() {
           // Candidate Dashboard
           <div className="space-y-8">
             <div className="text-center py-12">
-              <UserGroupIcon className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Welcome to Your Candidate Portal</h2>
-              <p className="text-lg text-gray-600 mb-8">Track your interview progress and manage your applications</p>
+              <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                <UserGroupIcon className="w-10 h-10 text-white" />
+              </div>
+              <h2 className="text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-4">Welcome to Your Candidate Portal</h2>
+              <p className="text-lg text-purple-200 mb-8">Track your interview progress and manage your applications</p>
               
               {/* Candidate Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                <Card className="hover:shadow-lg transition-shadow">
+                <Card className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
                   <CardContent className="p-6 text-center">
-                    <CalendarIcon className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-gray-900">0</p>
-                    <p className="text-sm text-gray-600">Upcoming Interviews</p>
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <CalendarIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <p className="text-3xl font-bold text-white mb-2">0</p>
+                    <p className="text-sm text-purple-200">Upcoming Interviews</p>
                   </CardContent>
                 </Card>
-                <Card className="hover:shadow-lg transition-shadow">
+                <Card className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
                   <CardContent className="p-6 text-center">
-                    <ClipboardDocumentListIcon className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-gray-900">0</p>
-                    <p className="text-sm text-gray-600">Applications</p>
+                    <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <ClipboardDocumentListIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <p className="text-3xl font-bold text-white mb-2">0</p>
+                    <p className="text-sm text-purple-200">Applications</p>
                   </CardContent>
                 </Card>
-                <Card className="hover:shadow-lg transition-shadow">
+                <Card className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
                   <CardContent className="p-6 text-center">
-                    <ChartBarIcon className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-gray-900">-</p>
-                    <p className="text-sm text-gray-600">Interview Score</p>
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <ChartBarIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <p className="text-3xl font-bold text-white mb-2">-</p>
+                    <p className="text-sm text-purple-200">Interview Score</p>
                   </CardContent>
                 </Card>
               </div>
               
-              <div className="mt-8">
-                <Button className="bg-blue-600 hover:bg-blue-700 mr-4">
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  Apply for Position
-                </Button>
-                <Button variant="outline">
+              <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-xl transform hover:scale-105 transition-all duration-300"
+                  onClick={() => router.push('/profile')}
+                >
+                  <UserGroupIcon className="w-5 h-5 mr-2" />
                   View My Profile
+                </Button>
+                <Button 
+                  className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-xl transform hover:scale-105 transition-all duration-300"
+                  onClick={() => router.push('/jobs')}
+                >
+                  <PlusIcon className="w-5 h-5 mr-2" />
+                  Apply for Interview
                 </Button>
               </div>
             </div>
@@ -266,15 +281,15 @@ export default function Dashboard() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {statsConfig.map((stat, index) => (
-                <Card key={index} className="hover:shadow-lg transition-shadow">
+                <Card key={index} className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
                   <CardContent className="p-6">
                     <div className="flex items-center">
-                      <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center`}>
+                      <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center shadow-lg`}>
                         <stat.icon className="w-6 h-6 text-white" />
                       </div>
                       <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                        <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                        <p className="text-sm font-medium text-purple-200">{stat.label}</p>
+                        <p className="text-2xl font-bold text-white">{stat.value}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -285,20 +300,20 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Recent Interviews */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="bg-white/5 backdrop-blur-sm border-white/10">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">Recent Interviews</h2>
+                  <h2 className="text-xl font-semibold text-white">Recent Interviews</h2>
                   <Link href="/interviews">
-                    <Button variant="outline" size="sm">View All</Button>
+                    <Button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/10">View All</Button>
                   </Link>
                 </div>
                 {recentInterviews.length === 0 ? (
                   <div className="text-center py-8">
-                    <CalendarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-2">No interviews scheduled yet</p>
+                    <CalendarIcon className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+                    <p className="text-purple-200 mb-2">No interviews scheduled yet</p>
                     <Link href="/interviews/new">
-                      <Button>Schedule Your First Interview</Button>
+                      <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">Schedule Your First Interview</Button>
                     </Link>
                   </div>
                 ) : (
