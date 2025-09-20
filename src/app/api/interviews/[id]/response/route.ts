@@ -4,14 +4,15 @@ import { AIInterviewer } from '@/lib/ai-interviewer'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const data = await request.json()
     const { response, questionIndex } = data
 
     const interview = await prisma.interview.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         candidate: {
           include: {
@@ -81,7 +82,7 @@ export async function POST(
 
     // Save updated interview
     await prisma.interview.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         questions: JSON.stringify(questions)
       }
