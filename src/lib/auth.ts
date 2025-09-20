@@ -36,16 +36,20 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Email and password are required')
+          console.log('Missing email or password')
+          return null
         }
 
         try {
+          console.log('Attempting to authenticate user:', credentials.email)
+          
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
           })
 
           if (!user) {
-            throw new Error('No user found with this email')
+            console.log('No user found with email:', credentials.email)
+            return null
           }
 
           // For demo users, check if password matches role
@@ -59,21 +63,25 @@ export const authOptions: NextAuthOptions = {
           const expectedPassword = demoPasswords[credentials.email]
           if (expectedPassword) {
             if (credentials.password !== expectedPassword) {
-              throw new Error('Invalid credentials')
+              console.log('Invalid demo password for:', credentials.email)
+              return null
             }
           } else {
             // For real users, check hashed password
             const userWithPassword = user as typeof user & { password?: string }
             if (!userWithPassword.password) {
-              throw new Error('Please sign in with GitHub or contact admin to set up password')
+              console.log('No password set for user:', credentials.email)
+              return null
             }
 
             const isPasswordValid = await bcrypt.compare(credentials.password, userWithPassword.password)
             if (!isPasswordValid) {
-              throw new Error('Invalid credentials')
+              console.log('Invalid password for user:', credentials.email)
+              return null
             }
           }
 
+          console.log('User authenticated successfully:', user.email)
           return {
             id: user.id,
             email: user.email,
@@ -83,7 +91,7 @@ export const authOptions: NextAuthOptions = {
           }
         } catch (error) {
           console.error('Authentication error:', error)
-          throw error
+          return null
         }
       },
     }),

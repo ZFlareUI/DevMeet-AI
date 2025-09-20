@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed": "ts-node --esm scripts/seed.ts",
-    "db:reset": "npx prisma migrate reset --force && npm run db:seed"
+    "db:reset": "npx prisma migrate reset --force && npm run db:seed",
+    "db:init": "npx tsx scripts/init-db.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
