@@ -27,7 +27,7 @@ export async function POST(
     switch (action) {
       case 'start':
         updatedInterview = await prisma.interview.update({
-          where: { id: params.id },
+          where: { id },
           data: {
             status: 'IN_PROGRESS',
             startedAt: new Date()
@@ -46,7 +46,7 @@ export async function POST(
         )
 
         updatedInterview = await prisma.interview.update({
-          where: { id: params.id },
+          where: { id },
           data: {
             status: 'COMPLETED',
             completedAt: new Date(),
@@ -60,7 +60,7 @@ export async function POST(
         // Create assessment record
         await prisma.assessment.create({
           data: {
-            interviewId: params.id,
+            interviewId: id,
             candidateId: interview.candidateId,
             assessorId: interview.interviewerId,
             technicalScore: summary.overallScore,
@@ -78,7 +78,7 @@ export async function POST(
 
       case 'cancel':
         updatedInterview = await prisma.interview.update({
-          where: { id: params.id },
+          where: { id },
           data: {
             status: 'CANCELLED'
           }

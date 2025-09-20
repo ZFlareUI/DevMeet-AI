@@ -21,7 +21,7 @@ export async function GET(
       return createErrorResponse('Forbidden', 403)
     }
 
-    const candidateId = params.id
+    const candidateId = id
 
     if (!candidateId) {
       return createErrorResponse('Candidate ID is required')

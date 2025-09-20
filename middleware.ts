@@ -2,8 +2,39 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { UserRole } from '@prisma/client'
 
-// Rate limiting store (in production, use Redis)
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
+// Define public routes that don't require authentication
+const publicRoutes = [
+  '/',
+  '/auth',
+  '/auth/signin', 
+  '/auth/register',
+  '/landing',
+  '/features',
+  '/privacy',
+  '/terms',
+  '/api/auth/register',
+  '/api/auth/signin',
+  '/api/auth/signout',
+  '/api/auth/session',
+  '/api/auth/providers',
+  '/api/auth/callback',
+  '/api/auth/csrf',
+]
+
+// Define admin-only routes
+const adminRoutes = [
+  '/admin',
+  '/analytics',
+]
+
+// Define API routes that require specific roles
+const apiRoleRoutes = {
+  '/api/candidates': ['ADMIN', 'RECRUITER', 'INTERVIEWER'],
+  '/api/interviews': ['ADMIN', 'RECRUITER', 'INTERVIEWER'],
+  '/api/assessments': ['ADMIN', 'RECRUITER', 'INTERVIEWER'],
+  '/api/uploads': ['ADMIN', 'RECRUITER', 'INTERVIEWER', 'CANDIDATE'],
+  '/api/analytics': ['ADMIN', 'RECRUITER'],
+}
 
 // Security headers
 const securityHeaders = {
@@ -15,116 +46,49 @@ const securityHeaders = {
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
 }
 
-// Rate limiting configuration
-const RATE_LIMIT_WINDOW = 15 * 60 * 1000 // 15 minutes
-const RATE_LIMITS = {
-  '/api/auth/register': 5,
-  '/api/auth/signin': 10,
-  '/api/candidates': 50,
-  '/api/interviews': 30,
-  default: 100
-}
-
-// Define public routes that don't require authentication
-const publicRoutes = [
-  '/',
-  '/auth/signin',
-  '/auth/register',
-  '/api/auth',
-  '/landing',
-  '/features',
-  '/privacy',
-  '/terms'
-]
-
-// Define role-based route access
-const roleBasedRoutes = {
-  '/admin': ['ADMIN'],
-  '/dashboard': ['ADMIN', 'RECRUITER', 'INTERVIEWER'],
-  '/interviews': ['ADMIN', 'RECRUITER', 'INTERVIEWER'],
-  '/candidates': ['ADMIN', 'RECRUITER', 'INTERVIEWER'],
-  '/analytics': ['ADMIN', 'RECRUITER'],
-  '/api/candidates': ['ADMIN', 'RECRUITER', 'INTERVIEWER'],
-  '/api/interviews': ['ADMIN', 'RECRUITER', 'INTERVIEWER'],
-  '/api/assessments': ['ADMIN', 'RECRUITER', 'INTERVIEWER'],
-  '/api/analytics': ['ADMIN', 'RECRUITER']
-}
-
-export async function middleware(request: NextRequest) {
-  const response = NextResponse.next()
-  const { pathname } = request.nextUrl
-  
-  // Add security headers
+function addSecurityHeaders(response: NextResponse): NextResponse {
   Object.entries(securityHeaders).forEach(([key, value]) => {
     response.headers.set(key, value)
   })
+  return response
+}
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
   
-  // CORS handling for API routes
-  if (request.nextUrl.pathname.startsWith('/api/')) {
-    response.headers.set('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 200, headers: response.headers })
+  // Create response
+  let response = NextResponse.next()
+  
+  // Add security headers to all responses
+  response = addSecurityHeaders(response)
+  
+  // Skip middleware for public routes (except admin routes)
+  const isPublicRoute = publicRoutes.some(route => {
+    if (route.endsWith('*')) {
+      return pathname.startsWith(route.slice(0, -1))
     }
-  }
+    return pathname === route || pathname.startsWith(route + '/')
+  })
   
-  // Rate limiting
-  const ip = request.headers.get('x-forwarded-for') || 
-             request.headers.get('x-real-ip') || 
-             'anonymous'
-  const key = `${ip}:${request.nextUrl.pathname}`
-  const now = Date.now()
+  // Always check admin routes regardless of public status
+  const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
   
-  const limit = RATE_LIMITS[request.nextUrl.pathname as keyof typeof RATE_LIMITS] || RATE_LIMITS.default
-  
-  const current = rateLimitStore.get(key)
-  if (!current || now > current.resetTime) {
-    rateLimitStore.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW })
-  } else if (current.count >= limit) {
-    return new NextResponse(
-      JSON.stringify({ error: 'Rate limit exceeded' }),
-      {
-        status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          'Retry-After': Math.ceil((current.resetTime - now) / 1000).toString(),
-          ...Object.fromEntries(Object.entries(securityHeaders))
-        }
-      }
-    )
-  } else {
-    current.count++
-  }
-
-  // Check if the route is public
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || pathname.startsWith(route)
-  )
-
-  if (isPublicRoute) {
+  if (isPublicRoute && !isAdminRoute) {
     return response
   }
-
-  // Get the token from the request
+  
+  // Get token for authentication
   const token = await getToken({ 
-    req: request, 
+    req: request,
     secret: process.env.NEXTAUTH_SECRET 
   })
-
-  // If no token, redirect to signin for pages or return 401 for API
+  
+  // If no token and route requires auth, redirect to signin
   if (!token) {
     if (pathname.startsWith('/api/')) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Unauthorized' }),
-        {
-          status: 401,
-          headers: {
-            'Content-Type': 'application/json',
-            ...Object.fromEntries(Object.entries(securityHeaders))
-          }
-        }
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401, headers: response.headers }
       )
     }
     
@@ -132,43 +96,69 @@ export async function middleware(request: NextRequest) {
     signInUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(signInUrl)
   }
-
-  // Check role-based access
-  for (const [route, allowedRoles] of Object.entries(roleBasedRoutes)) {
-    if (pathname.startsWith(route)) {
-      const userRole = token.role as string
-      if (!allowedRoles.includes(userRole)) {
-        // Redirect to appropriate dashboard based on role
-        const redirectUrl = getRoleBasedRedirect(userRole)
-        return NextResponse.redirect(new URL(redirectUrl, request.url))
+  
+  // Check admin routes
+  if (isAdminRoute) {
+    const userRole = (token as any)?.role as UserRole
+    if (userRole !== UserRole.ADMIN) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json(
+          { error: 'Access denied' },
+          { status: 403, headers: response.headers }
+        )
       }
-      break
+      
+      // Redirect to appropriate dashboard based on role
+      const redirectUrl = getRoleBasedRedirect(userRole)
+      return NextResponse.redirect(new URL(redirectUrl, request.url))
     }
   }
-
+  
+  // Check API route permissions
+  if (pathname.startsWith('/api/')) {
+    const userRole = (token as any)?.role as UserRole
+    
+    // Check specific API route permissions
+    for (const [route, allowedRoles] of Object.entries(apiRoleRoutes)) {
+      if (pathname.startsWith(route)) {
+        if (!allowedRoles.includes(userRole)) {
+          return NextResponse.json(
+            { error: 'Insufficient permissions' },
+            { status: 403, headers: response.headers }
+          )
+        }
+        break
+      }
+    }
+  }
+  
   // Add user info to headers for API routes
-  const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('x-user-id', token.sub || '')
-  requestHeaders.set('x-user-role', token.role as string || '')
-  requestHeaders.set('x-user-email', token.email || '')
+  if (pathname.startsWith('/api/')) {
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-user-id', (token as any)?.id || '')
+    requestHeaders.set('x-user-role', (token as any)?.role || '')
+    requestHeaders.set('x-user-email', (token as any)?.email || '')
 
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  })
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
+  }
+  
+  return response
 }
 
-function getRoleBasedRedirect(role: string): string {
+function getRoleBasedRedirect(role: UserRole): string {
   switch (role) {
-    case 'ADMIN':
+    case UserRole.ADMIN:
       return '/dashboard'
-    case 'RECRUITER':
+    case UserRole.RECRUITER:
       return '/dashboard'
-    case 'INTERVIEWER':
+    case UserRole.INTERVIEWER:
       return '/interviews'
-    case 'CANDIDATE':
-      return '/candidate/profile'
+    case UserRole.CANDIDATE:
+      return '/profile'
     default:
       return '/auth/signin'
   }
@@ -178,11 +168,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api/auth (NextAuth API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - public folder files
      */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
