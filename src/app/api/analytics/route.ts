@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
@@ -51,11 +51,11 @@ export async function GET(request: NextRequest) {
 
     // Calculate average score
     const avgScore = interviews.length > 0 
-      ? interviews.reduce((sum, interview) => sum + (interview.score || 0), 0) / interviews.length
+      ? interviews.reduce((sum: number, interview) => sum + (interview.score || 0), 0) / interviews.length
       : 0
 
     // Calculate hire rate (assuming score >= 8 is hired)
-    const hiredCount = interviews.filter(interview => (interview.score || 0) >= 8).length
+    const hiredCount = interviews.filter((interview) => (interview.score || 0) >= 8).length
     const hireRate = completedInterviews > 0 ? (hiredCount / completedInterviews) * 100 : 0
 
     // Score distribution
@@ -69,14 +69,14 @@ export async function GET(request: NextRequest) {
 
     const scoreDistribution = scoreRanges.map(range => ({
       range: range.range,
-      count: interviews.filter(interview => {
+      count: interviews.filter((interview) => {
         const score = interview.score || 0
         return score >= range.min && score <= range.max
       }).length
     }))
 
     // Position statistics
-    const positionGroups = interviews.reduce((acc, interview) => {
+    const positionGroups = interviews.reduce((acc: Record<string, { scores: number[], count: number }>, interview) => {
       const position = interview.candidate?.position || 'Unknown'
       if (!acc[position]) {
         acc[position] = { scores: [], count: 0 }
@@ -84,12 +84,12 @@ export async function GET(request: NextRequest) {
       acc[position].scores.push(interview.score || 0)
       acc[position].count++
       return acc
-    }, {} as Record<string, { scores: number[], count: number }>)
+    }, {})
 
     const positionStats = Object.entries(positionGroups).map(([position, data]) => ({
       position,
       count: data.count,
-      avgScore: data.scores.reduce((sum, score) => sum + score, 0) / data.scores.length
+      avgScore: data.scores.reduce((sum: number, score: number) => sum + score, 0) / data.scores.length
     }))
 
     // Get all candidates with position stats
@@ -98,11 +98,11 @@ export async function GET(request: NextRequest) {
     })
 
     // Calculate position stats including all candidates
-    const allPositionGroups = allCandidates.reduce((acc, candidate) => {
+    const allPositionGroups = allCandidates.reduce((acc: Record<string, number>, candidate) => {
       const position = candidate.position || 'Unknown'
       acc[position] = (acc[position] || 0) + 1
       return acc
-    }, {} as Record<string, number>)
+    }, {})
 
     const completePositionStats = Object.entries(allPositionGroups).map(([position, count]) => {
       const interviewData = positionGroups[position]
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
         position,
         count,
         avgScore: interviewData ? 
-          interviewData.scores.reduce((sum, score) => sum + score, 0) / interviewData.scores.length : 0
+          interviewData.scores.reduce((sum: number, score: number) => sum + score, 0) / interviewData.scores.length : 0
       }
     })
 

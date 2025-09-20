@@ -179,12 +179,20 @@ export default function Dashboard() {
             {/* Analytics Chart Placeholder */}
             <Card className="mt-6">
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Hiring Analytics</h2>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">Hiring Analytics</h2>
+                  <Link href="/analytics">
+                    <Button variant="outline" size="sm">View Analytics</Button>
+                  </Link>
+                </div>
                 <div className="h-64 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg flex items-center justify-center">
                   <div className="text-center">
                     <ChartBarIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">Analytics charts will be implemented here</p>
-                    <p className="text-sm text-gray-500">Interview performance, hiring trends, candidate quality metrics</p>
+                    <p className="text-gray-600">Hiring metrics and performance insights</p>
+                    <p className="text-sm text-gray-500">Candidate pipeline, interview scores, hiring funnel</p>
+                    <Link href="/analytics">
+                      <Button className="mt-4">View Full Analytics</Button>
+                    </Link>
                   </div>
                 </div>
               </CardContent>
@@ -241,10 +249,12 @@ export default function Dashboard() {
                     <UserGroupIcon className="w-4 h-4 mr-2" />
                     Manage Team
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <ChartBarIcon className="w-4 h-4 mr-2" />
-                    View Reports
-                  </Button>
+                  <Link href="/analytics">
+                    <Button variant="outline" className="w-full justify-start">
+                      <ChartBarIcon className="w-4 h-4 mr-2" />
+                      View Analytics
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
