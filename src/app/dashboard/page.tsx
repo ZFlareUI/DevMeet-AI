@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link'
+
 import { 
   ChartBarIcon, 
   UserGroupIcon, 
@@ -96,10 +98,12 @@ export default function Dashboard() {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <PlusIcon className="w-4 h-4 mr-2" />
-                New Interview
-              </Button>
+              <Link href="/interviews/create">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <PlusIcon className="w-4 h-4 mr-2" />
+                  New Interview
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -132,7 +136,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-semibold text-gray-900">Recent Interviews</h2>
-                  <Button variant="outline" size="sm">View All</Button>
+                  <Link href="/interviews">
+                    <Button variant="outline" size="sm">View All</Button>
+                  </Link>
                 </div>
                 <div className="space-y-4">
                   {recentInterviews.map((interview) => (
