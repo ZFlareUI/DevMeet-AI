@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hash } from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
-import { validateInput, userRegistrationSchema } from '@/lib/validation'
+import { validateInput, registerSchema } from '@/lib/validation'
 import { UserRole } from '@prisma/client'
 
 export async function POST(request: NextRequest) {
@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     
     // Validate input
-    const validation = validateInput(userRegistrationSchema, body)
+    const validation = validateInput(registerSchema, body)
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Invalid input data', details: validation.errors },

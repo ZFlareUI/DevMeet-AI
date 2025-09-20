@@ -4,9 +4,6 @@ const nextConfig: NextConfig = {
   // Production optimizations
   output: 'standalone',
   experimental: {
-    turbo: {
-      memoryLimit: 512,
-    },
     serverMinification: true,
     serverSourceMaps: false,
   },

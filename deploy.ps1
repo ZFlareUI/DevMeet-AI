@@ -92,16 +92,17 @@ function Backup-Database {
     }
 }
 
-function Build-Application {
+function Start-ApplicationBuild {
     Write-Info "Building application..."
     
     # Stop existing containers
     docker-compose down
     
-    # Build the application
+    # Build the application using configured image name
     docker-compose build --no-cache
+    docker image tag "${AppName}_app" $DockerImage
     
-    Write-Success "Application built successfully"
+    Write-Success "Application built successfully with image: $DockerImage"
 }
 
 function Invoke-DatabaseMigrations {
@@ -123,11 +124,24 @@ function Invoke-DatabaseMigrations {
     Write-Success "Database migrations completed"
 }
 
-function Deploy-Application {
+function Start-ApplicationDeployment {
     Write-Info "Deploying application..."
     
-    # Start all services
+    # Create network if it doesn't exist
+    try {
+        docker network create $NetworkName
+        Write-Info "Created network: $NetworkName"
+    }
+    catch {
+        Write-Info "Network $NetworkName already exists"
+    }
+    
+    # Start all services with named container
     docker-compose --env-file $EnvFile up -d
+    docker rename "${AppName}_app_1" $ContainerName -ErrorAction SilentlyContinue
+    
+    Write-Success "Application deployed successfully as container: $ContainerName"
+}
     
     # Wait for application to be ready
     Write-Info "Waiting for application to start..."
@@ -194,9 +208,9 @@ function Start-Deployment {
     
     Test-Prerequisites
     Backup-Database
-    Build-Application
+    Start-ApplicationBuild
     Invoke-DatabaseMigrations
-    Deploy-Application
+    Start-ApplicationDeployment
     Remove-OldResources
     
     Write-Success "Deployment completed successfully!"
@@ -212,7 +226,7 @@ switch ($Command) {
         Backup-Database
     }
     "build" {
-        Build-Application
+        Start-ApplicationBuild
     }
     "migrate" {
         Invoke-DatabaseMigrations

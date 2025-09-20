@@ -4,11 +4,12 @@ import { GitHubAnalyzer } from '@/lib/github-analyzer'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const candidate = await prisma.candidate.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!candidate || !candidate.githubUsername) {
@@ -23,13 +24,13 @@ export async function POST(
     
     // Delete old analysis
     await prisma.gitHubAnalysis.deleteMany({
-      where: { candidateId: params.id }
+      where: { candidateId: id }
     })
 
     // Create new analysis
     const githubAnalysis = await prisma.gitHubAnalysis.create({
       data: {
-        candidateId: params.id,
+        candidateId: id,
         username: candidate.githubUsername,
         profileData: JSON.stringify(analysis.profile),
         repositories: JSON.stringify(analysis.repositories),
