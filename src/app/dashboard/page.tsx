@@ -24,7 +24,7 @@ import type { Candidate, Interview } from '@/lib/validation';
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { showToast } = useToast();
+  const { addToast } = useToast();
   
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [interviews, setInterviews] = useState<Interview[]>([]);
@@ -60,13 +60,13 @@ export default function Dashboard() {
       if (candidatesResponse.success) {
         setCandidates(candidatesResponse.data);
       } else {
-        showToast(candidatesResponse.error || 'Failed to load candidates', 'error');
+        addToast({ message: candidatesResponse.error || 'Failed to load candidates', type: 'error' });
       }
 
       if (interviewsResponse.success) {
         setInterviews(interviewsResponse.data);
       } else {
-        showToast(interviewsResponse.error || 'Failed to load interviews', 'error');
+        addToast({ message: interviewsResponse.error || 'Failed to load interviews', type: 'error' });
       }
 
       // Calculate stats
@@ -77,13 +77,13 @@ export default function Dashboard() {
       const currentYear = new Date().getFullYear();
       
       setStats({
-        activeInterviews: interviewsData.filter(i => i.status === 'scheduled' || i.status === 'in-progress').length,
-        candidatesInPipeline: candidatesData.filter(c => c.status === 'active').length,
-        interviewsThisMonth: interviewsData.filter(i => {
+        activeInterviews: interviewsData.filter((i: Interview) => i.status === 'scheduled' || i.status === 'in-progress').length,
+        candidatesInPipeline: candidatesData.filter((c: Candidate) => c.status === 'active').length,
+        interviewsThisMonth: interviewsData.filter((i: Interview) => {
           const interviewDate = new Date(i.scheduledAt);
           return interviewDate.getMonth() === currentMonth && interviewDate.getFullYear() === currentYear;
         }).length,
-        hiredThisMonth: candidatesData.filter(c => {
+        hiredThisMonth: candidatesData.filter((c: Candidate) => {
           if (c.status !== 'hired' || !c.updatedAt) return false;
           const hiredDate = new Date(c.updatedAt);
           return hiredDate.getMonth() === currentMonth && hiredDate.getFullYear() === currentYear;
@@ -92,7 +92,7 @@ export default function Dashboard() {
 
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
-      showToast('Failed to load dashboard data', 'error');
+      addToast({ message: 'Failed to load dashboard data', type: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +103,7 @@ export default function Dashboard() {
       router.push(`/interviews/new?candidateId=${candidateId}`);
     } catch (error) {
       console.error('Failed to schedule interview:', error);
-      showToast('Failed to schedule interview', 'error');
+      addToast({ message: 'Failed to schedule interview', type: 'error' });
     }
   };
 
@@ -174,6 +174,11 @@ export default function Dashboard() {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+              <Link href="/features">
+                <Button variant="outline">
+                  Features
+                </Button>
+              </Link>
               <Link href="/interviews/create">
                 <Button className="bg-blue-600 hover:bg-blue-700">
                   <PlusIcon className="w-4 h-4 mr-2" />
@@ -188,7 +193,7 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
+          {statsConfig.map((stat, index) => (
             <Card key={index} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center">
@@ -216,39 +221,55 @@ export default function Dashboard() {
                     <Button variant="outline" size="sm">View All</Button>
                   </Link>
                 </div>
-                <div className="space-y-4">
-                  {recentInterviews.map((interview) => (
-                    <div key={interview.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                          <span className="text-white font-semibold text-sm">{interview.avatar}</span>
+                {recentInterviews.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CalendarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-2">No interviews scheduled yet</p>
+                    <Link href="/interviews/new">
+                      <Button>Schedule Your First Interview</Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentInterviews.map((interview) => (
+                      <div key={interview.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <span className="text-white font-semibold text-sm">{interview.candidateAvatar}</span>
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{interview.candidateName}</h3>
+                            <p className="text-sm text-gray-600">{interview.title}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(interview.scheduledAt).toLocaleDateString()} at{' '}
+                              {new Date(interview.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{interview.candidate}</h3>
-                          <p className="text-sm text-gray-600">{interview.position}</p>
+                        <div className="flex items-center space-x-4">
+                          <div className="text-right">
+                            {interview.score && (
+                              <p className="text-sm font-semibold text-green-600">Score: {interview.score}/10</p>
+                            )}
+                          </div>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            interview.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            interview.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
+                            interview.status === 'scheduled' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {interview.status}
+                          </span>
+                          <Link href={`/interviews/${interview.id}`}>
+                            <Button variant="outline" size="sm">
+                              View
+                            </Button>
+                          </Link>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                          <p className="text-sm text-gray-600">{interview.time}</p>
-                          {interview.score && (
-                            <p className="text-sm font-semibold text-green-600">Score: {interview.score}/10</p>
-                          )}
-                        </div>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          interview.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                          interview.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {interview.status}
-                        </span>
-                        <Button variant="outline" size="sm">
-                          View
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -280,35 +301,51 @@ export default function Dashboard() {
             <Card>
               <CardContent className="p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">Top Candidates</h2>
-                <div className="space-y-4">
-                  {topCandidates.map((candidate, index) => (
-                    <div key={index} className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{candidate.name}</h3>
-                          <p className="text-sm text-gray-600">{candidate.position}</p>
+                {topCandidates.length === 0 ? (
+                  <div className="text-center py-8">
+                    <UserGroupIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-2">No candidates yet</p>
+                    <Link href="/candidates/new">
+                      <Button>Add Your First Candidate</Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {topCandidates.map((candidate) => (
+                      <div key={candidate.id} className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{candidate.name}</h3>
+                            <p className="text-sm text-gray-600">{candidate.email}</p>
+                          </div>
+                          <div className="text-right">
+                            {candidate.githubScore && (
+                              <>
+                                <p className="text-lg font-bold text-green-600">{candidate.githubScore.toFixed(1)}</p>
+                                <p className="text-xs text-gray-500">GitHub Score</p>
+                              </>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-green-600">{candidate.score}</p>
-                          <p className="text-xs text-gray-500">Score</p>
-                        </div>
+                        {candidate.githubUrl && (
+                          <div className="mb-3">
+                            <p className="text-xs text-gray-500 mb-1">
+                              GitHub: @{candidate.githubUrl.split('/').pop()}
+                            </p>
+                          </div>
+                        )}
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => handleScheduleInterview(candidate.id)}
+                        >
+                          Schedule Interview
+                        </Button>
                       </div>
-                      <div className="mb-3">
-                        <p className="text-xs text-gray-500 mb-1">GitHub: @{candidate.github}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {candidate.skills.map((skill, skillIndex) => (
-                            <span key={skillIndex} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm" className="w-full">
-                        Schedule Interview
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -317,20 +354,60 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
                 <div className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start">
-                    <ClipboardDocumentListIcon className="w-4 h-4 mr-2" />
-                    Create Job Posting
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <UserGroupIcon className="w-4 h-4 mr-2" />
-                    Manage Team
-                  </Button>
+                  <Link href="/candidates/new">
+                    <Button variant="outline" className="w-full justify-start">
+                      <UserGroupIcon className="w-4 h-4 mr-2" />
+                      Add New Candidate
+                    </Button>
+                  </Link>
+                  <Link href="/interviews/new">
+                    <Button variant="outline" className="w-full justify-start">
+                      <CalendarIcon className="w-4 h-4 mr-2" />
+                      Schedule Interview
+                    </Button>
+                  </Link>
                   <Link href="/analytics">
                     <Button variant="outline" className="w-full justify-start">
                       <ChartBarIcon className="w-4 h-4 mr-2" />
                       View Analytics
                     </Button>
                   </Link>
+                  <Link href="/candidates">
+                    <Button variant="outline" className="w-full justify-start">
+                      <ClipboardDocumentListIcon className="w-4 h-4 mr-2" />
+                      Manage Candidates
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* System Status */}
+            <Card className="mt-6">
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">System Status</h2>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Database</span>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <span className="text-sm text-green-600">Operational</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">GitHub Integration</span>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <span className="text-sm text-green-600">Connected</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">AI Interviewer</span>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <span className="text-sm text-green-600">Ready</span>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
