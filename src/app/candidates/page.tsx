@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Navigation from '@/components/ui/navigation';
 import { 
   PlusIcon,
   MagnifyingGlassIcon,
@@ -88,41 +89,33 @@ export default function CandidatesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0D001A] via-[#1A0B2E] to-[#2D1B69]">
-      {/* Header */}
-      <div className="bg-black/30 backdrop-blur-xl border-b border-purple-500/20 shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Candidates</h1>
-              <p className="mt-1 text-sm text-purple-200">
-                Manage your candidate pipeline and schedule interviews
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              <Link href="/dashboard">
-                <Button variant="outline" className="border-purple-500/30 text-purple-300 hover:bg-purple-500/20">
-                  Back to Dashboard
-                </Button>
-              </Link>
-              <Link href="/candidates/new">
-                <Button className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700">
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  Add Candidate
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <Navigation showBackButton={true} backUrl="/dashboard" backLabel="Dashboard" />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">Candidates</h1>
+          <p className="text-lg text-purple-200">
+            Manage your candidate pipeline and schedule interviews
+        </div>
+        
+        {/* Controls */}
+        <div className="flex justify-center space-x-4 mb-8">
+          <Link href="/candidates/new">
+            <Button className="bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 hover:from-cyan-400 hover:via-purple-500 hover:to-pink-400 text-white shadow-xl hover:shadow-cyan-500/25 transition-all duration-300 hover:scale-105">
+              <PlusIcon className="w-4 h-4 mr-2" />
+              Add New Candidate
+            </Button>
+          </Link>
+        </div>
+
         {/* Filters and Search */}
-        <Card className="mb-6 bg-black/20 backdrop-blur-sm border-purple-500/30">
+        <Card className="mb-6 bg-gradient-to-br from-black/30 via-purple-900/20 to-black/30 backdrop-blur-md border border-purple-500/40 shadow-xl">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
               <form onSubmit={handleSearch} className="flex-1 max-w-md">
                 <div className="relative">
-                  <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400" />
                   <input
                     type="text"
                     placeholder="Search candidates..."
@@ -156,15 +149,15 @@ export default function CandidatesPage() {
 
         {/* Candidates List */}
         {candidates.length === 0 ? (
-          <Card>
+          <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30">
             <CardContent className="p-12 text-center">
               <UserGroupIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No candidates found</h3>
-              <p className="text-gray-600 mb-6">
+              <h3 className="text-lg font-semibold text-white mb-2">No candidates found</h3>
+              <p className="text-gray-300 mb-6">
                 {searchQuery ? 'Try adjusting your search or filters.' : 'Get started by adding your first candidate.'}
               </p>
               <Link href="/candidates/new">
-                <Button>
+                <Button className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700">
                   <PlusIcon className="w-4 h-4 mr-2" />
                   Add Your First Candidate
                 </Button>
@@ -174,20 +167,20 @@ export default function CandidatesPage() {
         ) : (
           <div className="grid gap-6">
             {candidates.map((candidate) => (
-              <Card key={candidate.id} className="hover:shadow-lg transition-shadow">
+              <Card key={candidate.id} className="bg-black/20 backdrop-blur-sm border-purple-500/30 hover:bg-black/40 transition-all duration-300">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-white font-semibold text-lg">
                           {candidate.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{candidate.name}</h3>
-                        <p className="text-sm text-gray-600">{candidate.email}</p>
+                        <h3 className="text-lg font-semibold text-white">{candidate.name}</h3>
+                        <p className="text-sm text-gray-300">{candidate.email}</p>
                         {candidate.githubUrl && (
-                          <p className="text-sm text-blue-600">
+                          <p className="text-sm text-cyan-400">
                             GitHub: @{candidate.githubUrl.split('/').pop()}
                           </p>
                         )}
@@ -197,22 +190,22 @@ export default function CandidatesPage() {
                     <div className="flex items-center space-x-4">
                       {candidate.githubScore && (
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-green-600">
+                          <p className="text-2xl font-bold text-cyan-400">
                             {candidate.githubScore.toFixed(1)}
                           </p>
-                          <p className="text-xs text-gray-500">GitHub Score</p>
+                          <p className="text-xs text-gray-400">GitHub Score</p>
                         </div>
                       )}
 
                       <div className="text-center">
                         <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
                           ['APPLIED', 'SCREENING', 'INTERVIEWING', 'ASSESSMENT', 'OFFERED'].includes(candidate.status)
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
                             : candidate.status === 'HIRED'
-                            ? 'bg-blue-100 text-blue-800'
+                            ? 'bg-green-500/20 text-green-300 border border-green-500/30'
                             : candidate.status === 'REJECTED'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                            : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
                         }`}>
                           {candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1).toLowerCase()}
                         </span>
@@ -220,12 +213,12 @@ export default function CandidatesPage() {
 
                       <div className="flex space-x-2">
                         <Link href={`/interviews/new?candidateId=${candidate.id}`}>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-300 hover:bg-purple-500/20">
                             Schedule Interview
                           </Button>
                         </Link>
                         <Link href={`/candidates/${candidate.id}`}>
-                          <Button size="sm">
+                          <Button size="sm" className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700">
                             View Details
                           </Button>
                         </Link>
@@ -234,12 +227,12 @@ export default function CandidatesPage() {
                   </div>
 
                   {candidate.notes && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-700">{candidate.notes}</p>
+                    <div className="mt-4 p-3 bg-purple-500/10 backdrop-blur-sm border border-purple-500/20 rounded-lg">
+                      <p className="text-sm text-gray-300">{candidate.notes}</p>
                     </div>
                   )}
 
-                  <div className="mt-4 flex justify-between items-center text-xs text-gray-500">
+                  <div className="mt-4 flex justify-between items-center text-xs text-gray-400">
                     <span>Added: {new Date(candidate.createdAt).toLocaleDateString()}</span>
                     <span>Updated: {new Date(candidate.updatedAt).toLocaleDateString()}</span>
                   </div>

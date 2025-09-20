@@ -99,38 +99,38 @@ export default function JobsPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-500"></div>
+      <div className="min-h-screen bg-gradient-to-br from-[#0D001A] via-[#1A0B2E] to-[#2D1B69] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#0D001A] via-[#1A0B2E] to-[#2D1B69]">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-emerald-200 shadow-lg">
+      <header className="bg-black/30 backdrop-blur-xl border-b border-purple-500/20 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <Button 
                 variant="ghost" 
-                className="text-emerald-700 hover:bg-emerald-100"
+                className="text-purple-300 hover:bg-purple-500/20"
                 onClick={() => router.push('/dashboard')}
               >
                 <ArrowLeftIcon className="w-5 h-5 mr-2" />
                 Back to Dashboard
               </Button>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Available Positions</h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-600 bg-clip-text text-transparent">Available Positions</h1>
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-500" />
+                <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400" />
                 <input 
                   type="text" 
                   placeholder="Search jobs..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-white/70 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-emerald-900 placeholder-emerald-500 backdrop-blur-sm w-64"
+                  className="pl-10 pr-4 py-2 bg-black/30 border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white placeholder-gray-400 backdrop-blur-sm w-64"
                 />
               </div>
             </div>
@@ -142,28 +142,28 @@ export default function JobsPage() {
         {/* Stats Header */}
         <div className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card className="bg-white/70 backdrop-blur-sm border-emerald-200 shadow-lg">
+            <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30 shadow-lg">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-emerald-800">{filteredJobs.length}</div>
-                <div className="text-sm text-emerald-600">Available Jobs</div>
+                <div className="text-2xl font-bold text-cyan-400">{filteredJobs.length}</div>
+                <div className="text-sm text-purple-300">Available Jobs</div>
               </CardContent>
             </Card>
-            <Card className="bg-white/70 backdrop-blur-sm border-emerald-200 shadow-lg">
+            <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30 shadow-lg">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-emerald-800">{filteredJobs.filter(j => j.urgent).length}</div>
-                <div className="text-sm text-emerald-600">Urgent Hiring</div>
+                <div className="text-2xl font-bold text-cyan-400">{filteredJobs.filter(j => j.urgent).length}</div>
+                <div className="text-sm text-purple-300">Urgent Hiring</div>
               </CardContent>
             </Card>
-            <Card className="bg-white/70 backdrop-blur-sm border-emerald-200 shadow-lg">
+            <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30 shadow-lg">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-emerald-800">{filteredJobs.filter(j => j.location === 'Remote').length}</div>
-                <div className="text-sm text-emerald-600">Remote Jobs</div>
+                <div className="text-2xl font-bold text-cyan-400">{filteredJobs.filter(j => j.location === 'Remote').length}</div>
+                <div className="text-sm text-purple-300">Remote Jobs</div>
               </CardContent>
             </Card>
-            <Card className="bg-white/70 backdrop-blur-sm border-emerald-200 shadow-lg">
+            <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30 shadow-lg">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-emerald-800">{filteredJobs.filter(j => j.type === 'Full-time').length}</div>
-                <div className="text-sm text-emerald-600">Full-time</div>
+                <div className="text-2xl font-bold text-cyan-400">{filteredJobs.filter(j => j.type === 'Full-time').length}</div>
+                <div className="text-sm text-purple-300">Full-time</div>
               </CardContent>
             </Card>
           </div>
@@ -172,25 +172,25 @@ export default function JobsPage() {
         {/* Job Listings */}
         <div className="space-y-6">
           {filteredJobs.map((job) => (
-            <Card key={job.id} className="bg-white/70 backdrop-blur-sm border-emerald-200 hover:bg-white/80 transition-all duration-300 transform hover:scale-[1.02] shadow-lg">
+            <Card key={job.id} className="bg-black/20 backdrop-blur-sm border-purple-500/30 hover:bg-black/40 transition-all duration-300 transform hover:scale-[1.02] shadow-lg">
               <CardContent className="p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex-1">
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <div className="flex items-center space-x-3">
-                          <h3 className="text-xl font-bold text-emerald-800">{job.title}</h3>
+                          <h3 className="text-xl font-bold text-white">{job.title}</h3>
                           {job.urgent && (
                             <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full">
                               Urgent
                             </span>
                           )}
                         </div>
-                        <p className="text-lg text-emerald-600 font-medium">{job.company}</p>
+                        <p className="text-lg text-cyan-400 font-medium">{job.company}</p>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-emerald-600">
+                    <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-purple-300">
                       <div className="flex items-center space-x-1">
                         <MapPinIcon className="w-4 h-4" />
                         <span>{job.location}</span>
@@ -209,13 +209,13 @@ export default function JobsPage() {
                       </div>
                     </div>
 
-                    <p className="text-emerald-700 mb-4 line-clamp-2">{job.description}</p>
+                    <p className="text-gray-300 mb-4 line-clamp-2">{job.description}</p>
 
                     <div className="flex flex-wrap gap-2">
                       {job.requirements.map((req, index) => (
                         <span 
                           key={index} 
-                          className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-sm border border-emerald-200"
+                          className="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm border border-purple-500/30"
                         >
                           {req}
                         </span>
@@ -225,7 +225,7 @@ export default function JobsPage() {
 
                   <div className="mt-6 lg:mt-0 lg:ml-6 flex flex-col space-y-3">
                     <Button 
-                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-white"
+                      className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-white"
                       onClick={() => handleApply(job.id)}
                     >
                       Apply Now
@@ -233,7 +233,7 @@ export default function JobsPage() {
                     </Button>
                     <Button 
                       variant="outline" 
-                      className="border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+                      className="border-purple-500/30 text-purple-300 hover:bg-purple-500/20"
                     >
                       View Details
                     </Button>
