@@ -556,8 +556,8 @@ export default function CandidateAssessmentPage() {
                           <p className="text-sm text-gray-600">{repo.description || 'No description'}</p>
                           <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
                             <span>{repo.language}</span>
-                            <span>⭐ {repo.stargazers_count}</span>
-                            <span>🍴 {repo.forks_count}</span>
+                            <span>Stars: {repo.stargazers_count}</span>
+                            <span>Forks: {repo.forks_count}</span>
                           </div>
                         </div>
                       </div>
