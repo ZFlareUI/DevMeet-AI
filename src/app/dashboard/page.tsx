@@ -22,66 +22,136 @@ import { api } from '@/lib/api';
 import type { Candidate, Interview } from '@/lib/validation';
 
 export default function Dashboard() {
-  const stats = [
-    { label: 'Active Interviews', value: '12', icon: PlayCircleIcon, color: 'bg-blue-500' },
-    { label: 'Candidates in Pipeline', value: '48', icon: UserGroupIcon, color: 'bg-green-500' },
-    { label: 'Interviews This Month', value: '89', icon: CalendarIcon, color: 'bg-purple-500' },
-    { label: 'Hired This Month', value: '15', icon: CheckCircleIcon, color: 'bg-orange-500' }
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { showToast } = useToast();
+  
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [stats, setStats] = useState({
+    activeInterviews: 0,
+    candidatesInPipeline: 0,
+    interviewsThisMonth: 0,
+    hiredThisMonth: 0
+  });
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    
+    if (!session) {
+      router.push('/');
+      return;
+    }
+
+    loadDashboardData();
+  }, [session, status, router]);
+
+  const loadDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      
+      const [candidatesResponse, interviewsResponse] = await Promise.all([
+        api.candidates.getAll(),
+        api.interviews.getAll()
+      ]);
+
+      if (candidatesResponse.success) {
+        setCandidates(candidatesResponse.data);
+      } else {
+        showToast(candidatesResponse.error || 'Failed to load candidates', 'error');
+      }
+
+      if (interviewsResponse.success) {
+        setInterviews(interviewsResponse.data);
+      } else {
+        showToast(interviewsResponse.error || 'Failed to load interviews', 'error');
+      }
+
+      // Calculate stats
+      const candidatesData = candidatesResponse.success ? candidatesResponse.data : [];
+      const interviewsData = interviewsResponse.success ? interviewsResponse.data : [];
+      
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      
+      setStats({
+        activeInterviews: interviewsData.filter(i => i.status === 'scheduled' || i.status === 'in-progress').length,
+        candidatesInPipeline: candidatesData.filter(c => c.status === 'active').length,
+        interviewsThisMonth: interviewsData.filter(i => {
+          const interviewDate = new Date(i.scheduledAt);
+          return interviewDate.getMonth() === currentMonth && interviewDate.getFullYear() === currentYear;
+        }).length,
+        hiredThisMonth: candidatesData.filter(c => {
+          if (c.status !== 'hired' || !c.updatedAt) return false;
+          const hiredDate = new Date(c.updatedAt);
+          return hiredDate.getMonth() === currentMonth && hiredDate.getFullYear() === currentYear;
+        }).length
+      });
+
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+      showToast('Failed to load dashboard data', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleScheduleInterview = async (candidateId: string) => {
+    try {
+      router.push(`/interviews/new?candidateId=${candidateId}`);
+    } catch (error) {
+      console.error('Failed to schedule interview:', error);
+      showToast('Failed to schedule interview', 'error');
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/candidates?search=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  if (status === 'loading' || isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null; // Will redirect
+  }
+
+  const statsConfig = [
+    { label: 'Active Interviews', value: stats.activeInterviews.toString(), icon: PlayCircleIcon, color: 'bg-blue-500' },
+    { label: 'Candidates in Pipeline', value: stats.candidatesInPipeline.toString(), icon: UserGroupIcon, color: 'bg-green-500' },
+    { label: 'Interviews This Month', value: stats.interviewsThisMonth.toString(), icon: CalendarIcon, color: 'bg-purple-500' },
+    { label: 'Hired This Month', value: stats.hiredThisMonth.toString(), icon: CheckCircleIcon, color: 'bg-orange-500' }
   ];
 
-  const recentInterviews = [
-    { 
-      id: 1, 
-      candidate: 'Sarah Chen', 
-      position: 'Frontend Developer', 
-      status: 'In Progress', 
-      score: null,
-      time: '2:30 PM',
-      avatar: 'SC'
-    },
-    { 
-      id: 2, 
-      candidate: 'Michael Rodriguez', 
-      position: 'Full Stack Engineer', 
-      status: 'Completed', 
-      score: 8.7,
-      time: '11:45 AM',
-      avatar: 'MR'
-    },
-    { 
-      id: 3, 
-      candidate: 'Emily Johnson', 
-      position: 'DevOps Engineer', 
-      status: 'Scheduled', 
-      score: null,
-      time: '4:00 PM',
-      avatar: 'EJ'
-    }
-  ];
+  const recentInterviews = interviews
+    .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+    .slice(0, 5)
+    .map(interview => {
+      const candidate = candidates.find(c => c.id === interview.candidateId);
+      return {
+        ...interview,
+        candidateName: candidate?.name || 'Unknown Candidate',
+        candidateAvatar: candidate?.name.split(' ').map(n => n[0]).join('').toUpperCase() || 'UK'
+      };
+    });
 
-  const topCandidates = [
-    { 
-      name: 'Alex Thompson', 
-      position: 'Backend Developer', 
-      score: 9.2, 
-      github: 'alexthompson',
-      skills: ['Node.js', 'PostgreSQL', 'AWS']
-    },
-    { 
-      name: 'Lisa Park', 
-      position: 'Frontend Developer', 
-      score: 8.9, 
-      github: 'lisapark',
-      skills: ['React', 'TypeScript', 'GraphQL']
-    },
-    { 
-      name: 'David Kumar', 
-      position: 'Data Engineer', 
-      score: 8.5, 
-      github: 'davidkumar',
-      skills: ['Python', 'Spark', 'Kafka']
-    }
-  ];
+  const topCandidates = candidates
+    .filter(c => c.status === 'active')
+    .sort((a, b) => (b.githubScore || 0) - (a.githubScore || 0))
+    .slice(0, 5);
 
   return (
     <div className="min-h-screen bg-gray-50">
