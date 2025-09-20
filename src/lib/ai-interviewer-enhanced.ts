@@ -68,64 +68,6 @@ export interface CandidateProfile {
 export class AIInterviewer {
   private model = genAI.getGenerativeModel({ model: 'gemini-pro' })
   
-  // Question templates for different categories
-  private questionTemplates = {
-    javascript: {
-      technical: [
-        "Explain the concept of closures in JavaScript with a practical example.",
-        "What are the differences between `var`, `let`, and `const`?",
-        "How does prototypal inheritance work in JavaScript?",
-        "Explain event bubbling and event delegation.",
-        "What is the difference between `==` and `===`?"
-      ],
-      coding: [
-        "Write a function to debounce API calls.",
-        "Implement a deep clone function for objects.",
-        "Create a function that flattens a nested array.",
-        "Write a promise-based function with proper error handling."
-      ]
-    },
-    react: {
-      technical: [
-        "Explain the React component lifecycle and how hooks changed it.",
-        "What is the virtual DOM and how does React use it?",
-        "How do you optimize React performance?",
-        "Explain state management patterns in React."
-      ],
-      coding: [
-        "Create a custom hook for API calls with loading states.",
-        "Implement a higher-order component for authentication.",
-        "Build a reusable modal component with proper accessibility."
-      ]
-    },
-    nodejs: {
-      technical: [
-        "Explain the Node.js event loop and how it handles asynchronous operations.",
-        "What are streams in Node.js and when would you use them?",
-        "How do you handle memory leaks in Node.js applications?",
-        "Explain middleware in Express.js."
-      ],
-      coding: [
-        "Create a rate limiting middleware.",
-        "Implement file upload with validation.",
-        "Build a simple JWT authentication system."
-      ]
-    },
-    behavioral: [
-      "Tell me about a challenging technical problem you solved.",
-      "Describe a time when you had to learn a new technology quickly.",
-      "How do you handle code reviews and feedback?",
-      "Describe your approach to debugging complex issues.",
-      "Tell me about a time you had to work with a difficult team member."
-    ],
-    system_design: [
-      "Design a URL shortening service like bit.ly.",
-      "How would you design a chat application?",
-      "Design a notification system for a social media platform.",
-      "How would you handle scaling a web application for millions of users?"
-    ]
-  }
-  
   async generateQuestions(
     candidateProfile: CandidateProfile,
     interviewType: 'technical' | 'behavioral' | 'full',
@@ -426,70 +368,6 @@ export class AIInterviewer {
     }
   }
 
-  async generateInterviewSummary(
-    questions: InterviewQuestion[],
-    responses: InterviewResponse[]
-  ): Promise<{
-    overallScore: number
-    strengths: string[]
-    weaknesses: string[]
-    recommendation: 'strong_hire' | 'hire' | 'no_hire' | 'strong_no_hire'
-    summary: string
-  }> {
-    const conversationHistory = questions.map((q, index) => ({
-      question: q.question,
-      response: responses[index]?.response || 'No response',
-      score: responses[index]?.score || 0
-    }))
-
-    const prompt = `
-    Analyze this complete interview session and provide a comprehensive evaluation:
-    
-    Interview Data: ${JSON.stringify(conversationHistory, null, 2)}
-    
-    Provide analysis in the following JSON format:
-    {
-      "overallScore": 7.5,
-      "strengths": ["Strong technical knowledge", "Good communication skills"],
-      "weaknesses": ["Limited experience with scalability", "Could improve testing practices"],
-      "recommendation": "hire",
-      "summary": "Detailed summary of the candidate's performance and fit for the role"
-    }
-    
-    Base recommendation on:
-    - Technical competency
-    - Communication skills
-    - Problem-solving ability
-    - Cultural fit indicators
-    - Growth potential
-    `
-
-    try {
-      const result = await this.model.generateContent(prompt)
-      const response = await result.response
-      const analysis = JSON.parse(response.text())
-      
-      return {
-        overallScore: Math.max(1, Math.min(10, analysis.overallScore)),
-        strengths: analysis.strengths || [],
-        weaknesses: analysis.weaknesses || [],
-        recommendation: analysis.recommendation || 'no_hire',
-        summary: analysis.summary || 'Analysis completed successfully.'
-      }
-    } catch (error) {
-      Logger.error('Error generating summary', error)
-      const avgScore = responses.reduce((sum, r) => sum + (r.score || 0), 0) / responses.length
-      
-      return {
-        overallScore: avgScore || 5,
-        strengths: ['Completed interview session'],
-        weaknesses: ['Requires manual review'],
-        recommendation: avgScore > 7 ? 'hire' : 'no_hire',
-        summary: 'Automated analysis failed. Manual review recommended.'
-      }
-    }
-  }
-
   private getFallbackQuestions(
     candidateProfile: CandidateProfile,
     interviewType: string,
@@ -560,5 +438,102 @@ export class AIInterviewer {
     ]
 
     return baseQuestions.slice(0, Math.min(count, baseQuestions.length))
+  }
+
+  async generateInterviewSummary(
+    questions: InterviewQuestion[],
+    responses: InterviewResponse[]
+  ): Promise<{
+    overallScore: number
+    strengths: string[]
+    weaknesses: string[]
+    recommendation: 'strong_hire' | 'hire' | 'no_hire' | 'strong_no_hire'
+    summary: string
+  }> {
+    const conversationHistory = questions.map((q, index) => ({
+      question: q.question,
+      response: responses[index]?.response || 'No response',
+      score: responses[index]?.score || 0
+    }))
+
+    const prompt = `
+    Analyze this complete interview session and provide a comprehensive evaluation:
+    
+    Interview Data: ${JSON.stringify(conversationHistory, null, 2)}
+    
+    Please provide:
+    1. Overall score (average of all question scores)
+    2. Top 3 strengths demonstrated
+    3. Top 3 areas for improvement
+    4. Hiring recommendation
+    5. Summary paragraph
+    
+    Return in JSON format:
+    {
+      "overallScore": 7.2,
+      "strengths": ["strength 1", "strength 2", "strength 3"],
+      "weaknesses": ["area 1", "area 2", "area 3"],
+      "recommendation": "hire",
+      "summary": "Comprehensive summary of the candidate's performance..."
+    }
+    `
+
+    try {
+      const result = await this.model.generateContent(prompt)
+      const responseText = await result.response.text()
+      const summary = JSON.parse(responseText)
+      
+      Logger.info('Interview summary generated', {
+        overallScore: summary.overallScore,
+        recommendation: summary.recommendation
+      })
+      
+      return summary
+    } catch (error) {
+      Logger.error('Error generating interview summary', error)
+      
+      // Fallback summary
+      const averageScore = responses.reduce((sum, r) => sum + (r.score || 0), 0) / responses.length
+      
+      return {
+        overallScore: averageScore,
+        strengths: ['Communication skills', 'Technical knowledge', 'Problem-solving approach'],
+        weaknesses: ['More detail needed', 'Practice recommended', 'Further exploration required'],
+        recommendation: averageScore >= 7 ? 'hire' : averageScore >= 5 ? 'no_hire' : 'strong_no_hire',
+        summary: `Candidate completed ${responses.length} questions with an average score of ${averageScore.toFixed(1)}.`
+      }
+    }
+  }
+
+  // Utility method to create an interview session
+  createSession(
+    candidateId: string,
+    questions: InterviewQuestion[],
+    aiPersonality: string = 'professional',
+    techStack: string[] = []
+  ): InterviewSession {
+    return {
+      id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      candidateId,
+      questions,
+      responses: [],
+      currentQuestionIndex: 0,
+      status: 'started',
+      aiPersonality,
+      techStack
+    }
+  }
+
+  // Add response to session
+  addResponse(
+    session: InterviewSession,
+    response: InterviewResponse
+  ): InterviewSession {
+    return {
+      ...session,
+      responses: [...session.responses, response],
+      currentQuestionIndex: session.currentQuestionIndex + 1,
+      status: session.currentQuestionIndex + 1 >= session.questions.length ? 'completed' : 'in_progress'
+    }
   }
 }

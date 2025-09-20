@@ -466,27 +466,51 @@ export class AIInterviewer {
 
     try {
       const result = await this.model.generateContent(prompt)
-      const response = await result.response
-      const analysis = JSON.parse(response.text())
+      const response_text = await result.response.text()
+      const evaluation = JSON.parse(response_text)
       
       return {
-        overallScore: Math.max(1, Math.min(10, analysis.overallScore)),
-        strengths: analysis.strengths || [],
-        weaknesses: analysis.weaknesses || [],
-        recommendation: analysis.recommendation || 'no_hire',
-        summary: analysis.summary || 'Analysis completed successfully.'
+        score: Math.max(1, Math.min(10, evaluation.score)),
+        feedback: evaluation.feedback,
+        followUp: evaluation.followUp
       }
     } catch (error) {
-      Logger.error('Error generating summary', error)
-      const avgScore = responses.reduce((sum, r) => sum + (r.score || 0), 0) / responses.length
-      
+      console.error('Error evaluating response:', error)
       return {
-        overallScore: avgScore || 5,
-        strengths: ['Completed interview session'],
-        weaknesses: ['Requires manual review'],
-        recommendation: avgScore > 7 ? 'hire' : 'no_hire',
-        summary: 'Automated analysis failed. Manual review recommended.'
+        score: 5,
+        feedback: 'Unable to evaluate response automatically. Manual review required.',
       }
+    }
+  }
+
+  async generateFollowUp(
+    previousQuestion: string,
+    candidateResponse: string,
+    interviewContext: string
+  ): Promise<string> {
+    const prompt = `
+    Based on the candidate's response, generate an intelligent follow-up question:
+    
+    Previous Question: ${previousQuestion}
+    Candidate Response: ${candidateResponse}
+    Interview Context: ${interviewContext}
+    
+    Generate a follow-up question that:
+    - Probes deeper into their understanding
+    - Tests practical application
+    - Explores edge cases or alternative approaches
+    - Is natural and conversational
+    
+    Return only the follow-up question as plain text.
+    `
+
+    try {
+      const result = await this.model.generateContent(prompt)
+      const response = await result.response
+      return response.text().trim()
+    } catch (error) {
+      console.error('Error generating follow-up:', error)
+      return "Can you elaborate on that approach and discuss any potential challenges?"
     }
   }
 
@@ -560,5 +584,69 @@ export class AIInterviewer {
     ]
 
     return baseQuestions.slice(0, Math.min(count, baseQuestions.length))
+  }
+
+  async generateInterviewSummary(
+    questions: InterviewQuestion[],
+    responses: InterviewResponse[]
+  ): Promise<{
+    overallScore: number
+    strengths: string[]
+    weaknesses: string[]
+    recommendation: 'strong_hire' | 'hire' | 'no_hire' | 'strong_no_hire'
+    summary: string
+  }> {
+    const conversationHistory = questions.map((q, index) => ({
+      question: q.question,
+      response: responses[index]?.response || 'No response',
+      score: responses[index]?.score || 0
+    }))
+
+    const prompt = `
+    Analyze this complete interview session and provide a comprehensive evaluation:
+    
+    Interview Data: ${JSON.stringify(conversationHistory, null, 2)}
+    
+    Provide analysis in the following JSON format:
+    {
+      "overallScore": 7.5,
+      "strengths": ["Strong technical knowledge", "Good communication skills"],
+      "weaknesses": ["Limited experience with scalability", "Could improve testing practices"],
+      "recommendation": "hire",
+      "summary": "Detailed summary of the candidate's performance and fit for the role"
+    }
+    
+    Base recommendation on:
+    - Technical competency
+    - Communication skills
+    - Problem-solving ability
+    - Cultural fit indicators
+    - Growth potential
+    `
+
+    try {
+      const result = await this.model.generateContent(prompt)
+      const response = await result.response
+      const analysis = JSON.parse(response.text())
+      
+      return {
+        overallScore: Math.max(1, Math.min(10, analysis.overallScore)),
+        strengths: analysis.strengths || [],
+        weaknesses: analysis.weaknesses || [],
+        recommendation: analysis.recommendation || 'no_hire',
+        summary: analysis.summary || 'Analysis completed successfully.'
+      }
+    } catch (error) {
+      console.error('Error generating summary:', error)
+      const avgScore = responses.reduce((sum, r) => sum + (r.score || 0), 0) / responses.length
+      
+      return {
+        overallScore: avgScore || 5,
+        strengths: ['Completed interview session'],
+        weaknesses: ['Requires manual review'],
+        recommendation: avgScore > 7 ? 'hire' : 'no_hire',
+        summary: 'Automated analysis failed. Manual review recommended.'
+      }
+    }
   }
 }

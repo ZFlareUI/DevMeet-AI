@@ -1,13 +1,80 @@
-import NextAuth, { NextAuthOptions } from 'next-auth'
+import NextAuth, { NextAuthOptions, DefaultSession } from 'next-auth'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import GitHubProvider from 'next-auth/providers/github'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { UserRole } from '@prisma/client'
+import { randomBytes, createHash } from 'crypto'
+
+// Extend the default session type
+declare module 'next-auth' {
+  interface Session extends DefaultSession {
+    user: {
+      id: string
+      role: UserRole
+      company?: string
+      position?: string
+    } & DefaultSession['user']
+  }
+  
+  interface User {
+    role: UserRole
+    company?: string
+    position?: string
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    role: UserRole
+    company?: string
+    position?: string
+  }
+}
+
+// Rate limiting for login attempts
+const loginAttempts = new Map<string, { count: number; resetTime: number }>()
+const MAX_LOGIN_ATTEMPTS = 5
+const LOCKOUT_TIME = 15 * 60 * 1000 // 15 minutes
+
+function checkRateLimit(email: string): boolean {
+  const now = Date.now()
+  const attempts = loginAttempts.get(email)
+  
+  if (!attempts || now > attempts.resetTime) {
+    loginAttempts.set(email, { count: 1, resetTime: now + LOCKOUT_TIME })
+    return true
+  }
+  
+  if (attempts.count >= MAX_LOGIN_ATTEMPTS) {
+    return false
+  }
+  
+  attempts.count++
+  return true
+}
+
+function clearRateLimit(email: string) {
+  loginAttempts.delete(email)
+}
+
+// Session security
+function generateSessionToken(): string {
+  return randomBytes(32).toString('hex')
+}
+
+function hashSessionToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex')
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
+  },
   providers: [
     // Only include GitHub provider if credentials are properly configured
     ...(process.env.GITHUB_CLIENT_ID && 
@@ -40,6 +107,12 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
+        // Check rate limiting
+        if (!checkRateLimit(credentials.email)) {
+          console.log('Rate limit exceeded for:', credentials.email)
+          throw new Error('Too many login attempts. Please try again later.')
+        }
+
         try {
           console.log('Attempting to authenticate user:', credentials.email)
           
@@ -50,6 +123,12 @@ export const authOptions: NextAuthOptions = {
           if (!user) {
             console.log('No user found with email:', credentials.email)
             return null
+          }
+
+          // Check for active account
+          if (!user.isActive) {
+            console.log('Account is deactivated:', credentials.email)
+            throw new Error('Account is deactivated. Please contact support.')
           }
 
           // For demo users, check if password matches role
@@ -81,25 +160,35 @@ export const authOptions: NextAuthOptions = {
             }
           }
 
+          // Update last login
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() }
+          })
+
+          // Clear rate limiting on successful login
+          clearRateLimit(credentials.email)
+
           console.log('User authenticated successfully:', user.email)
           return {
             id: user.id,
-            email: user.email,
+            email: user.email!,
             name: user.name,
             role: user.role,
+            company: user.company || undefined,
+            position: user.position || undefined,
             image: user.image
           }
         } catch (error) {
           console.error('Authentication error:', error)
+          if (error instanceof Error) {
+            throw error
+          }
           return null
         }
       },
     }),
   ],
-  session: {
-    strategy: 'jwt' as const,
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
   jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
@@ -108,6 +197,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role || UserRole.CANDIDATE
         token.id = user.id
+        token.company = user.company
+        token.position = user.position
       }
 
       // Handle GitHub OAuth users
@@ -134,6 +225,8 @@ export const authOptions: NextAuthOptions = {
 
           token.role = dbUser.role
           token.id = dbUser.id
+          token.company = dbUser.company
+          token.position = dbUser.position
         } catch (error) {
           console.error('Error handling GitHub user:', error)
         }
@@ -145,6 +238,8 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         session.user.id = token.id || token.sub!
         session.user.role = token.role as UserRole
+        session.user.company = token.company
+        session.user.position = token.position
       }
       return session
     },
@@ -159,6 +254,16 @@ export const authOptions: NextAuthOptions = {
   events: {
     async signIn({ user, account }) {
       console.log(`User ${user.email} signed in via ${account?.provider || 'credentials'}`)
+      
+      // Log security event
+      try {
+        await prisma.user.update({
+          where: { email: user.email! },
+          data: { lastLoginAt: new Date() }
+        })
+      } catch (error) {
+        console.error('Failed to update last login:', error)
+      }
     },
     async signOut({ session }) {
       console.log(`User ${session?.user?.email} signed out`)
