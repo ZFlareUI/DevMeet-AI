@@ -8,6 +8,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toast';
+import FileUpload from '@/components/ui/file-upload';
 import { api } from '@/lib/api';
 import { validateInput, candidateSchema, type CandidateInput } from '@/lib/validation';
 
@@ -20,16 +21,16 @@ export default function AddCandidatePage() {
     name: '',
     email: '',
     position: '',
-    experience: '',
+    experience: '0-1' as const,
     skills: [],
     phone: '',
     githubUrl: '',
-    resume: '',
-    coverLetter: ''
+    resume: ''
   });
   const [skillInput, setSkillInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [uploadedResumeId, setUploadedResumeId] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -75,9 +76,9 @@ export default function AddCandidatePage() {
     const validation = validateInput(candidateSchema, formData);
     if (!validation.success) {
       const fieldErrors: Record<string, string> = {};
-      validation.errors.forEach(error => {
-        const [field, message] = error.split(': ');
-        fieldErrors[field] = message;
+      validation.errors?.forEach(error => {
+        const field = ('path' in error ? String(error.path) : 'general');
+        fieldErrors[field] = error.message;
       });
       setErrors(fieldErrors);
       return;
@@ -285,23 +286,32 @@ export default function AddCandidatePage() {
                 </p>
               </div>
 
-              {/* Cover Letter */}
+              {/* Resume Upload */}
               <div>
-                <label htmlFor="coverLetter" className="block text-sm font-medium text-gray-700 mb-2">
-                  Cover Letter / Notes
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Resume
                 </label>
-                <textarea
-                  id="coverLetter"
-                  name="coverLetter"
-                  value={formData.coverLetter}
-                  onChange={handleInputChange}
-                  rows={4}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.coverLetter ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Any additional notes or cover letter content..."
+                <FileUpload
+                  type="resume"
+                  acceptedTypes={['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']}
+                  onUploadComplete={(file) => {
+                    setFormData(prev => ({ ...prev, resume: file.url }));
+                    setUploadedResumeId(file.id);
+                    addToast({ message: 'Resume uploaded successfully', type: 'success' });
+                  }}
+                  onUploadError={(error) => {
+                    addToast({ message: `Upload failed: ${error}`, type: 'error' });
+                  }}
+                  className="mb-2"
                 />
-                {errors.coverLetter && <p className="mt-1 text-sm text-red-600">{errors.coverLetter}</p>}
+                {formData.resume && (
+                  <div className="text-sm text-green-600 flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Resume uploaded successfully
+                  </div>
+                )}
               </div>
 
               {/* Submit Button */}

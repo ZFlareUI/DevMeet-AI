@@ -28,6 +28,7 @@ model User {
   interviews    Interview[]
   candidates    Candidate[]
   assessments   Assessment[]
+  uploadedFiles UploadedFile[] @relation("UserUploads")
 
   @@map("users")
 }
@@ -94,6 +95,7 @@ model Candidate {
   interviews      Interview[]
   assessments     Assessment[]
   githubAnalysis  GitHubAnalysis[]
+  uploadedFiles   UploadedFile[] @relation("CandidateFiles")
 
   @@map("candidates")
 }
@@ -212,4 +214,49 @@ enum AssessmentRecommendation {
   HIRE
   NO_HIRE
   STRONG_NO_HIRE
+}
+
+model UploadedFile {
+  id           String   @id @default(cuid())
+  filename     String   // Secure filename on disk
+  originalName String   // Original filename from user
+  filePath     String   // Full path to file on disk
+  fileSize     Int      // File size in bytes
+  mimeType     String   // MIME type of the file
+  type         String   // Type of upload: 'resume', 'document', 'avatar'
+  uploadedBy   String   // User ID who uploaded
+  candidateId  String?  // Associated candidate if applicable
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  uploader     User      @relation("UserUploads", fields: [uploadedBy], references: [id], onDelete: Cascade)
+  candidate    Candidate? @relation("CandidateFiles", fields: [candidateId], references: [id], onDelete: SetNull)
+
+  @@map("uploaded_files")
+}
+
+model SecurityLog {
+  id        String   @id @default(cuid())
+  type      String   // 'rate_limit', 'auth_failure', 'suspicious_activity', 'access_denied'
+  ip        String   // Client IP address
+  userAgent String   // User agent string
+  path      String   // Request path
+  userId    String?  // User ID if available
+  details   String   // JSON serialized details
+  timestamp DateTime @default(now())
+
+  @@map("security_logs")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  // User ID if available
+  action    String   // Action performed
+  ip        String   // Client IP address
+  userAgent String   // User agent string
+  details   String   // JSON serialized details
+  timestamp DateTime @default(now())
+
+  @@map("audit_logs")
 }

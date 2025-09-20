@@ -108,6 +108,48 @@ export type GitHubAnalysisInput = z.infer<typeof githubAnalysisSchema>
 export type PaginationInput = z.infer<typeof paginationSchema>
 export type SearchInput = z.infer<typeof searchSchema>
 export type FileUploadInput = z.infer<typeof fileUploadSchema>
+export type CandidateQueryInput = z.infer<typeof candidateQuerySchema>
+
+// Database entity types (for components that need them)
+export interface Candidate {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  position: string
+  experience: string
+  skills: string
+  githubUsername?: string
+  githubUrl?: string
+  linkedinUrl?: string
+  resume?: string
+  expectedSalary?: number
+  availability?: string
+  notes?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface Interview {
+  id: string
+  candidateId: string
+  interviewerId: string
+  position: string
+  type: string
+  status: string
+  scheduledAt?: Date
+  startedAt?: Date
+  completedAt?: Date
+  duration?: number
+  notes?: string
+  score?: number
+  questions?: string
+  techStack?: string
+  aiPersonality?: string
+  difficultyLevel?: string
+  createdAt: Date
+  updatedAt: Date
+}
 
 export function formatValidationErrors(error: z.ZodError) {
   return error.issues.map((issue) => ({
