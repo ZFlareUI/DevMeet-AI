@@ -140,10 +140,10 @@ export default function Dashboard() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-400 mx-auto"></div>
+          <p className="mt-4 text-purple-200">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -154,10 +154,10 @@ export default function Dashboard() {
   }
 
   const statsConfig = [
-    { label: 'Active Interviews', value: stats.activeInterviews.toString(), icon: PlayCircleIcon, color: 'bg-blue-500' },
-    { label: 'Candidates in Pipeline', value: stats.candidatesInPipeline.toString(), icon: UserGroupIcon, color: 'bg-green-500' },
-    { label: 'Interviews This Month', value: stats.interviewsThisMonth.toString(), icon: CalendarIcon, color: 'bg-purple-500' },
-    { label: 'Hired This Month', value: stats.hiredThisMonth.toString(), icon: CheckCircleIcon, color: 'bg-orange-500' }
+    { label: 'Active Interviews', value: stats.activeInterviews.toString(), icon: PlayCircleIcon, color: 'bg-gradient-to-r from-blue-500 to-cyan-500' },
+    { label: 'Candidates in Pipeline', value: stats.candidatesInPipeline.toString(), icon: UserGroupIcon, color: 'bg-gradient-to-r from-emerald-500 to-teal-500' },
+    { label: 'Interviews This Month', value: stats.interviewsThisMonth.toString(), icon: CalendarIcon, color: 'bg-gradient-to-r from-purple-500 to-pink-500' },
+    { label: 'Hired This Month', value: stats.hiredThisMonth.toString(), icon: CheckCircleIcon, color: 'bg-gradient-to-r from-orange-500 to-red-500' }
   ];
 
   const recentInterviews = interviews

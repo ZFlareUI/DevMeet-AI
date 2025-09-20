@@ -91,9 +91,9 @@ export default function LandingPage() {
             <p className="text-xl text-white/90 max-w-4xl mx-auto mb-12 leading-relaxed">
               Revolutionary AI-powered interviews combined with real-time GitHub code analysis.
               <br />
-              <span className="text-blue-300 font-semibold">⚡ 10x faster hiring</span> • 
-              <span className="text-purple-300 font-semibold"> 🎯 90% better matches</span> • 
-              <span className="text-pink-300 font-semibold"> 🚀 Zero bias</span>
+              <span className="text-blue-300 font-semibold"> 10x faster hiring</span> • 
+              <span className="text-purple-300 font-semibold">  90% better matches</span> • 
+              <span className="text-pink-300 font-semibold">  Zero bias</span>
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
