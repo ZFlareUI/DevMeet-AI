@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Navigation from '@/components/ui/navigation'
 import { 
   UserGroupIcon, 
   ClipboardDocumentListIcon, 
@@ -32,16 +33,22 @@ const StatCard = ({ title, value, icon: Icon, trend, color = 'blue' }: {
   trend?: string
   color?: string
 }) => (
-  <div className="bg-white rounded-lg shadow p-6">
+  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg p-6">
     <div className="flex items-center">
-      <div className={`flex-shrink-0 p-3 rounded-lg bg-${color}-100`}>
-        <Icon className={`h-6 w-6 text-${color}-600`} />
+      <div className={`flex-shrink-0 p-3 rounded-lg bg-gradient-to-r ${
+        color === 'blue' ? 'from-blue-500 to-blue-600' :
+        color === 'green' ? 'from-green-500 to-green-600' :
+        color === 'purple' ? 'from-purple-500 to-purple-600' :
+        color === 'orange' ? 'from-orange-500 to-orange-600' :
+        'from-blue-500 to-blue-600'
+      }`}>
+        <Icon className="h-6 w-6 text-white" />
       </div>
       <div className="ml-4 flex-1">
-        <p className="text-sm font-medium text-gray-600">{title}</p>
-        <p className="text-2xl font-semibold text-gray-900">{value}</p>
+        <p className="text-sm font-medium text-white/80">{title}</p>
+        <p className="text-2xl font-semibold text-white">{value}</p>
         {trend && (
-          <p className="text-sm text-green-600 mt-1">{trend}</p>
+          <p className="text-sm text-green-400 mt-1">{trend}</p>
         )}
       </div>
     </div>
@@ -72,16 +79,19 @@ const AnalyticsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-white rounded-lg shadow p-6">
-                  <div className="h-16 bg-gray-200 rounded"></div>
-                </div>
-              ))}
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+        <Navigation />
+        <div className="p-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="animate-pulse">
+              <div className="h-8 bg-white/20 rounded w-1/3 mb-8"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg p-6">
+                    <div className="h-16 bg-white/20 rounded"></div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -91,24 +101,28 @@ const AnalyticsPage = () => {
 
   if (!stats) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Analytics Dashboard</h1>
-          <p className="text-gray-600">Failed to load analytics data.</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+        <Navigation />
+        <div className="p-8">
+          <div className="max-w-7xl mx-auto text-center">
+            <h1 className="text-2xl font-bold text-white mb-4">Analytics Dashboard</h1>
+            <p className="text-white/70">Failed to load analytics data.</p>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+      <Navigation />
       {/* Header */}
-      <div className="bg-white shadow">
+      <div className="bg-white/10 backdrop-blur-md border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-              <p className="mt-1 text-sm text-gray-500">
+              <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
+              <p className="mt-1 text-sm text-white/70">
                 Hiring pipeline insights and performance metrics
               </p>
             </div>
@@ -157,52 +171,52 @@ const AnalyticsPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Hiring Funnel */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg p-6">
             <div className="flex items-center mb-4">
-              <FunnelIcon className="h-5 w-5 text-gray-400 mr-2" />
-              <h3 className="text-lg font-medium text-gray-900">Hiring Funnel</h3>
+              <FunnelIcon className="h-5 w-5 text-white/70 mr-2" />
+              <h3 className="text-lg font-medium text-white">Hiring Funnel</h3>
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Applied</span>
+                <span className="text-sm text-white/80">Applied</span>
                 <div className="flex items-center">
-                  <div className="w-32 bg-gray-200 rounded-full h-2 mr-3">
-                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: '100%' }}></div>
+                  <div className="w-32 bg-white/20 rounded-full h-2 mr-3">
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style={{ width: '100%' }}></div>
                   </div>
-                  <span className="text-sm font-medium">{stats.totalCandidates}</span>
+                  <span className="text-sm font-medium text-white">{stats.totalCandidates}</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Interviewed</span>
+                <span className="text-sm text-white/80">Interviewed</span>
                 <div className="flex items-center">
-                  <div className="w-32 bg-gray-200 rounded-full h-2 mr-3">
-                    <div className="bg-blue-600 h-2 rounded-full" style={{ 
+                  <div className="w-32 bg-white/20 rounded-full h-2 mr-3">
+                    <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full" style={{ 
                       width: `${(stats.totalInterviews / stats.totalCandidates) * 100}%` 
                     }}></div>
                   </div>
-                  <span className="text-sm font-medium">{stats.totalInterviews}</span>
+                  <span className="text-sm font-medium text-white">{stats.totalInterviews}</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Completed</span>
+                <span className="text-sm text-white/80">Completed</span>
                 <div className="flex items-center">
-                  <div className="w-32 bg-gray-200 rounded-full h-2 mr-3">
-                    <div className="bg-green-600 h-2 rounded-full" style={{ 
+                  <div className="w-32 bg-white/20 rounded-full h-2 mr-3">
+                    <div className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" style={{ 
                       width: `${(stats.completedInterviews / stats.totalCandidates) * 100}%` 
                     }}></div>
                   </div>
-                  <span className="text-sm font-medium">{stats.completedInterviews}</span>
+                  <span className="text-sm font-medium text-white">{stats.completedInterviews}</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Hired</span>
+                <span className="text-sm text-white/80">Hired</span>
                 <div className="flex items-center">
-                  <div className="w-32 bg-gray-200 rounded-full h-2 mr-3">
-                    <div className="bg-emerald-600 h-2 rounded-full" style={{ 
+                  <div className="w-32 bg-white/20 rounded-full h-2 mr-3">
+                    <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-2 rounded-full" style={{ 
                       width: `${stats.hireRate}%` 
                     }}></div>
                   </div>
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium text-white">
                     {Math.round((stats.hireRate / 100) * stats.completedInterviews)}
                   </span>
                 </div>
@@ -211,25 +225,25 @@ const AnalyticsPage = () => {
           </div>
 
           {/* Score Distribution */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg p-6">
             <div className="flex items-center mb-4">
-              <ChartBarIcon className="h-5 w-5 text-gray-400 mr-2" />
-              <h3 className="text-lg font-medium text-gray-900">Score Distribution</h3>
+              <ChartBarIcon className="h-5 w-5 text-white/70 mr-2" />
+              <h3 className="text-lg font-medium text-white">Score Distribution</h3>
             </div>
             <div className="space-y-3">
               {stats.scoreDistribution.map((item) => (
                 <div key={item.range} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{item.range}</span>
+                  <span className="text-sm text-white/80">{item.range}</span>
                   <div className="flex items-center">
-                    <div className="w-24 bg-gray-200 rounded-full h-2 mr-3">
+                    <div className="w-24 bg-white/20 rounded-full h-2 mr-3">
                       <div 
-                        className="bg-indigo-600 h-2 rounded-full" 
+                        className="bg-gradient-to-r from-indigo-500 to-indigo-600 h-2 rounded-full" 
                         style={{ 
                           width: `${(item.count / Math.max(...stats.scoreDistribution.map(s => s.count))) * 100}%` 
                         }}
                       ></div>
                     </div>
-                    <span className="text-sm font-medium">{item.count}</span>
+                    <span className="text-sm font-medium text-white">{item.count}</span>
                   </div>
                 </div>
               ))}
@@ -238,22 +252,22 @@ const AnalyticsPage = () => {
         </div>
 
         {/* Position Analytics */}
-        <div className="bg-white rounded-lg shadow mb-8">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Performance by Position</h3>
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg mb-8">
+          <div className="px-6 py-4 border-b border-white/20">
+            <h3 className="text-lg font-medium text-white">Performance by Position</h3>
           </div>
           <div className="p-6">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-white/20">
+                <thead className="bg-white/5">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
                       Position
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
                       Candidates
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
                       Avg Score
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">

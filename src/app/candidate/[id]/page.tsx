@@ -72,7 +72,7 @@ interface Candidate {
 
 export default function CandidateAssessmentPage() {
   const params = useParams()
-  const candidateId = params.id as string
+  const candidateId = params?.id as string
   const [candidate, setCandidate] = useState<Candidate | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')

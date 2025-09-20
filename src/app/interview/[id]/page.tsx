@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import io, { Socket } from 'socket.io-client'
+import Navigation from '@/components/ui/navigation'
 import { 
   PlayCircleIcon, 
   StopCircleIcon,
@@ -61,7 +62,7 @@ interface InterviewData {
 
 export default function LiveInterviewPage() {
   const params = useParams()
-  const interviewId = params.id as string
+  const interviewId = params?.id as string
   const [socket, setSocket] = useState<Socket | null>(null)
   const [interview, setInterview] = useState<InterviewData | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -221,10 +222,10 @@ export default function LiveInterviewPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading interview...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-white/80">Loading interview...</p>
         </div>
       </div>
     )
@@ -232,11 +233,14 @@ export default function LiveInterviewPage() {
 
   if (!interview) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <ExclamationTriangleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Interview Not Found</h2>
-          <p className="text-gray-600">The requested interview could not be found.</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+        <Navigation showBackButton={true} backUrl="/interviews" backLabel="Back to Interviews" />
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+          <div className="text-center">
+            <ExclamationTriangleIcon className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-white mb-2">Interview Not Found</h2>
+            <p className="text-white/70">The requested interview could not be found.</p>
+          </div>
         </div>
       </div>
     )
@@ -246,9 +250,10 @@ export default function LiveInterviewPage() {
   const hasMoreQuestions = currentQuestionIndex < interview.questions.questions.length - 1
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+      <Navigation showBackButton={true} backUrl="/interviews" backLabel="Back to Interviews" />
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white/10 backdrop-blur-md border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
@@ -256,21 +261,21 @@ export default function LiveInterviewPage() {
                 <span className="text-white font-bold text-sm">DA</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{interview.title}</h1>
-                <p className="text-sm text-gray-600">Live Interview Session</p>
+                <h1 className="text-xl font-bold text-white">{interview.title}</h1>
+                <p className="text-sm text-white/70">Live Interview Session</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-gray-600">
+              <div className="flex items-center space-x-2 text-white/80">
                 <ClockIcon className="w-5 h-5" />
                 <span className="font-mono">{formatTime(timeElapsed)}</span>
               </div>
               
               <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                 interview.status === 'IN_PROGRESS' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-gray-100 text-gray-800'
+                  ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
+                  : 'bg-slate-500/20 text-slate-300 border border-slate-500/30'
               }`}>
                 {interview.status.replace('_', ' ')}
               </div>
@@ -284,32 +289,32 @@ export default function LiveInterviewPage() {
           {/* Main Interview Area */}
           <div className="lg:col-span-3 space-y-6">
             {/* Video/Audio Section */}
-            <Card>
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* AI Interviewer */}
-                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-6">
+                  <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg p-6 border border-blue-500/30">
                     <div className="flex items-center space-x-3 mb-4">
                       <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                         <ComputerDesktopIcon className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">AI Interviewer</h3>
-                        <p className="text-sm text-gray-600">Technical Assessment</p>
+                        <h3 className="font-semibold text-white">AI Interviewer</h3>
+                        <p className="text-sm text-white/70">Technical Assessment</p>
                       </div>
                     </div>
-                    <div className="h-48 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
+                    <div className="h-48 bg-gradient-to-br from-blue-600/30 to-purple-600/30 rounded-lg flex items-center justify-center border border-blue-400/30">
                       <div className="text-center">
                         <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
                           <span className="text-white font-bold text-xl">AI</span>
                         </div>
-                        <p className="text-gray-600">AI Interviewer Active</p>
+                        <p className="text-white/80">AI Interviewer Active</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Candidate */}
-                  <div className="bg-gray-50 rounded-lg p-6">
+                  <div className="bg-slate-500/20 rounded-lg p-6 border border-slate-400/30">
                     <div className="flex items-center space-x-3 mb-4">
                       <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
                         <UserIcon className="w-6 h-6 text-white" />

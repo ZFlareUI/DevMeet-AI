@@ -180,9 +180,7 @@ export async function POST(request: NextRequest) {
         githubUsername: data.githubUsername,
         githubUrl: data.githubUrl || (data.githubUsername ? `https://github.com/${data.githubUsername}` : null),
         resume: data.resume,
-        coverLetter: data.coverLetter,
-        status: CandidateStatus.APPLIED,
-        createdBy: session.user.id
+        status: CandidateStatus.APPLIED
       }
     })
 
