@@ -61,9 +61,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const data = await request.json()
     const {
       title,
@@ -94,7 +95,7 @@ export async function PUT(
     if (recommendation !== undefined) updateData.recommendation = recommendation
 
     const interview = await prisma.interview.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         candidate: {

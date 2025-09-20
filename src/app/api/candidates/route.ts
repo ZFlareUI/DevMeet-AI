@@ -33,10 +33,18 @@ export async function GET(request: NextRequest) {
 
     const validation = validateInput(candidateQuerySchema, queryParams)
     if (!validation.success) {
-      return createErrorResponse(`Invalid query parameters: ${validation.errors.join(', ')}`)
+      return createErrorResponse(`Invalid query parameters: ${validation.errors?.join(', ') || 'Unknown validation error'}`)
     }
 
-    const { page, limit, sortBy, sortOrder, search, status, position, experience } = validation.data
+    const data = validation.data
+    if (!data) {
+      return createErrorResponse('Validation data is missing')
+    }
+
+    const { page, limit, sortBy, sortOrder, search, status, experience } = data
+    
+    // Get position from original query params since it's not in the validation schema
+    const position = queryParams.position
 
     // Build where clause
     const where: any = {}
@@ -142,10 +150,13 @@ export async function POST(request: NextRequest) {
     const validation = validateInput(candidateSchema, body)
     
     if (!validation.success) {
-      return createErrorResponse(`Validation failed: ${validation.errors.join(', ')}`)
+      return createErrorResponse(`Validation failed: ${validation.errors?.join(', ') || 'Unknown validation error'}`)
     }
 
     const data = validation.data
+    if (!data) {
+      return createErrorResponse('Validation data is missing')
+    }
 
     // Check if candidate with email already exists
     const existingCandidate = await prisma.candidate.findUnique({
@@ -177,23 +188,25 @@ export async function POST(request: NextRequest) {
         position: data.position,
         experience: data.experience,
         skills: JSON.stringify(data.skills),
-        githubUsername: data.githubUsername,
-        githubUrl: data.githubUrl || (data.githubUsername ? `https://github.com/${data.githubUsername}` : null),
+        githubUrl: data.githubUrl,
         resume: data.resume,
         status: CandidateStatus.APPLIED
       }
     })
 
-    // Analyze GitHub profile if username provided
-    if (data.githubUsername) {
+    // Analyze GitHub profile if URL provided
+    if (data.githubUrl && data.githubUrl.includes('github.com')) {
       try {
-        const analyzer = new GitHubAnalyzer()
-        const analysis = await analyzer.analyzeCandidate(data.githubUsername)
-        
-        await prisma.gitHubAnalysis.create({
-          data: {
-            candidateId: candidate.id,
-            username: data.githubUsername,
+        // Extract username from GitHub URL
+        const githubUsername = data.githubUrl.split('/').pop()
+        if (githubUsername) {
+          const analyzer = new GitHubAnalyzer()
+          const analysis = await analyzer.analyzeCandidate(githubUsername)
+          
+          await prisma.gitHubAnalysis.create({
+            data: {
+              candidateId: candidate.id,
+              username: githubUsername,
             profileData: JSON.stringify(analysis.profile),
             repositories: JSON.stringify(analysis.repositories),
             contributions: JSON.stringify(analysis.activityMetrics),
@@ -208,6 +221,7 @@ export async function POST(request: NextRequest) {
         })
 
         console.log(`GitHub analysis completed for candidate: ${candidate.id}`)
+        }
       } catch (error) {
         console.error('Error analyzing GitHub profile:', error)
         // Continue without GitHub analysis if it fails

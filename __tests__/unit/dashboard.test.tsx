@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import '@testing-library/jest-dom'
 import { useSession } from 'next-auth/react'
 import DashboardPage from '@/app/dashboard/page'
 
