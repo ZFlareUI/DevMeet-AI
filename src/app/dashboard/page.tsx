@@ -88,13 +88,13 @@ export default function Dashboard() {
         
         setStats({
           activeInterviews: interviewsData.filter((i: Interview) => i.status === 'scheduled' || i.status === 'in-progress').length,
-          candidatesInPipeline: candidatesData.filter((c: Candidate) => c.status === 'active').length,
+          candidatesInPipeline: candidatesData.filter((c: Candidate) => !['HIRED', 'REJECTED'].includes(c.status)).length,
           interviewsThisMonth: interviewsData.filter((i: Interview) => {
             const interviewDate = new Date(i.scheduledAt);
             return interviewDate.getMonth() === currentMonth && interviewDate.getFullYear() === currentYear;
           }).length,
           hiredThisMonth: candidatesData.filter((c: Candidate) => {
-            if (c.status !== 'hired' || !c.updatedAt) return false;
+            if (c.status !== 'HIRED' || !c.updatedAt) return false;
             const hiredDate = new Date(c.updatedAt);
             return hiredDate.getMonth() === currentMonth && hiredDate.getFullYear() === currentYear;
           }).length
@@ -173,7 +173,7 @@ export default function Dashboard() {
     });
 
   const topCandidates = candidates
-    .filter(c => c.status === 'active')
+    .filter(c => !['HIRED', 'REJECTED'].includes(c.status))
     .sort((a, b) => (b.githubScore || 0) - (a.githubScore || 0))
     .slice(0, 5);
 

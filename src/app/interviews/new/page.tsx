@@ -45,9 +45,14 @@ export default function NewInterviewPage() {
   const loadCandidates = async () => {
     try {
       setIsLoadingCandidates(true);
-      const response = await api.candidates.getAll({ status: 'active' });
+      // Get all candidates (we'll filter out HIRED and REJECTED on the frontend if needed)
+      const response = await api.candidates.getAll();
       if (response.success) {
-        setCandidates(response.data);
+        // Filter to only show candidates available for interviews
+        const availableCandidates = response.data.filter((candidate: any) => 
+          !['HIRED', 'REJECTED'].includes(candidate.status)
+        );
+        setCandidates(availableCandidates);
       }
     } catch (error) {
       console.error('Failed to load candidates:', error);

@@ -206,15 +206,15 @@ export default function CandidatesPage() {
 
                       <div className="text-center">
                         <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-                          candidate.status === 'active' 
+                          ['APPLIED', 'SCREENING', 'INTERVIEWING', 'ASSESSMENT', 'OFFERED'].includes(candidate.status)
                             ? 'bg-green-100 text-green-800'
-                            : candidate.status === 'hired'
+                            : candidate.status === 'HIRED'
                             ? 'bg-blue-100 text-blue-800'
-                            : candidate.status === 'rejected'
+                            : candidate.status === 'REJECTED'
                             ? 'bg-red-100 text-red-800'
                             : 'bg-gray-100 text-gray-800'
                         }`}>
-                          {candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1)}
+                          {candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1).toLowerCase()}
                         </span>
                       </div>
 

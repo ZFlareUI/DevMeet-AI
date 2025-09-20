@@ -174,7 +174,7 @@ export interface Candidate {
   email: string
   githubUrl?: string | null
   githubScore?: number | null
-  status: 'active' | 'hired' | 'rejected' | 'withdrawn'
+  status: 'APPLIED' | 'SCREENING' | 'INTERVIEWING' | 'ASSESSMENT' | 'OFFERED' | 'HIRED' | 'REJECTED'
   notes?: string | null
   createdAt: Date
   updatedAt: Date

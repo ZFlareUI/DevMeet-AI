@@ -142,28 +142,28 @@ export default function JobsPage() {
         {/* Stats Header */}
         <div className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+            <Card className="bg-white/70 backdrop-blur-sm border-emerald-200 shadow-lg">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-white">{filteredJobs.length}</div>
-                <div className="text-sm text-purple-200">Available Jobs</div>
+                <div className="text-2xl font-bold text-emerald-800">{filteredJobs.length}</div>
+                <div className="text-sm text-emerald-600">Available Jobs</div>
               </CardContent>
             </Card>
-            <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+            <Card className="bg-white/70 backdrop-blur-sm border-emerald-200 shadow-lg">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-white">{filteredJobs.filter(j => j.urgent).length}</div>
-                <div className="text-sm text-purple-200">Urgent Hiring</div>
+                <div className="text-2xl font-bold text-emerald-800">{filteredJobs.filter(j => j.urgent).length}</div>
+                <div className="text-sm text-emerald-600">Urgent Hiring</div>
               </CardContent>
             </Card>
-            <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+            <Card className="bg-white/70 backdrop-blur-sm border-emerald-200 shadow-lg">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-white">{filteredJobs.filter(j => j.location === 'Remote').length}</div>
-                <div className="text-sm text-purple-200">Remote Jobs</div>
+                <div className="text-2xl font-bold text-emerald-800">{filteredJobs.filter(j => j.location === 'Remote').length}</div>
+                <div className="text-sm text-emerald-600">Remote Jobs</div>
               </CardContent>
             </Card>
-            <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+            <Card className="bg-white/70 backdrop-blur-sm border-emerald-200 shadow-lg">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-white">{filteredJobs.filter(j => j.type === 'Full-time').length}</div>
-                <div className="text-sm text-purple-200">Full-time</div>
+                <div className="text-2xl font-bold text-emerald-800">{filteredJobs.filter(j => j.type === 'Full-time').length}</div>
+                <div className="text-sm text-emerald-600">Full-time</div>
               </CardContent>
             </Card>
           </div>
@@ -172,25 +172,25 @@ export default function JobsPage() {
         {/* Job Listings */}
         <div className="space-y-6">
           {filteredJobs.map((job) => (
-            <Card key={job.id} className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-[1.02]">
+            <Card key={job.id} className="bg-white/70 backdrop-blur-sm border-emerald-200 hover:bg-white/80 transition-all duration-300 transform hover:scale-[1.02] shadow-lg">
               <CardContent className="p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex-1">
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <div className="flex items-center space-x-3">
-                          <h3 className="text-xl font-bold text-white">{job.title}</h3>
+                          <h3 className="text-xl font-bold text-emerald-800">{job.title}</h3>
                           {job.urgent && (
                             <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full">
                               Urgent
                             </span>
                           )}
                         </div>
-                        <p className="text-lg text-purple-200 font-medium">{job.company}</p>
+                        <p className="text-lg text-emerald-600 font-medium">{job.company}</p>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-purple-200">
+                    <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-emerald-600">
                       <div className="flex items-center space-x-1">
                         <MapPinIcon className="w-4 h-4" />
                         <span>{job.location}</span>
@@ -209,13 +209,13 @@ export default function JobsPage() {
                       </div>
                     </div>
 
-                    <p className="text-purple-100 mb-4 line-clamp-2">{job.description}</p>
+                    <p className="text-emerald-700 mb-4 line-clamp-2">{job.description}</p>
 
                     <div className="flex flex-wrap gap-2">
                       {job.requirements.map((req, index) => (
                         <span 
                           key={index} 
-                          className="bg-white/10 text-purple-200 px-3 py-1 rounded-full text-sm border border-white/20"
+                          className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-sm border border-emerald-200"
                         >
                           {req}
                         </span>
@@ -225,7 +225,7 @@ export default function JobsPage() {
 
                   <div className="mt-6 lg:mt-0 lg:ml-6 flex flex-col space-y-3">
                     <Button 
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg transform hover:scale-105 transition-all duration-300"
+                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-white"
                       onClick={() => handleApply(job.id)}
                     >
                       Apply Now
@@ -233,7 +233,7 @@ export default function JobsPage() {
                     </Button>
                     <Button 
                       variant="outline" 
-                      className="border-white/30 text-white hover:bg-white/10"
+                      className="border-emerald-300 text-emerald-700 hover:bg-emerald-100"
                     >
                       View Details
                     </Button>
