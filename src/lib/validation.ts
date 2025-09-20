@@ -1,209 +1,190 @@
-import { z } from 'zod'
+﻿import { z } from 'zod'
+import { NextResponse } from 'next/server'
 
-// User validation schemas
+const phoneRegex = /^(\+\d{1,3}[- ]?)?\d{10}$/
+
+const passwordSchema = z.string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
+    'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character')
+
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('Invalid email address').min(1, 'Email is required'),
+  password: z.string().min(1, 'Password is required'),
 })
 
 export const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  role: z.enum(['ADMIN', 'RECRUITER', 'INTERVIEWER', 'CANDIDATE']).optional(),
+  name: z.string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(50, 'Name cannot exceed 50 characters')
+    .regex(/^[a-zA-Z\s]+$/, 'Name can only contain letters and spaces'),
+  email: z.string().email('Invalid email address').min(1, 'Email is required'),
+  password: passwordSchema,
+  confirmPassword: z.string(),
+  role: z.enum(['INTERVIEWER', 'ADMIN', 'CANDIDATE']).default('INTERVIEWER'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 })
 
-export const userRegistrationSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long'),
-  email: z.string().email('Invalid email address').toLowerCase(),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'),
-  role: z.enum(['ADMIN', 'RECRUITER', 'INTERVIEWER', 'CANDIDATE']),
-  company: z.string().min(1, 'Company name is required').max(100, 'Company name is too long').optional(),
-  position: z.string().max(100, 'Position is too long').optional(),
-})
-
-// Candidate validation schemas
 export const candidateSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().optional(),
-  position: z.string().min(2, 'Position must be at least 2 characters'),
-  experience: z.string().min(1, 'Experience is required'),
-  skills: z.array(z.string()).min(1, 'At least one skill is required'),
-  githubUsername: z.string().optional(),
-  githubUrl: z.string().url().optional().or(z.literal('')),
-  resume: z.string().optional(),
-  coverLetter: z.string().optional(),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name cannot exceed 100 characters'),
+  email: z.string().email('Invalid email address').min(1, 'Email is required'),
+  phone: z.string().regex(phoneRegex, 'Invalid phone number format').optional(),
+  resume: z.string().url('Invalid resume URL').optional(),
+  githubUrl: z.string().url('Invalid GitHub URL').optional(),
+  linkedinUrl: z.string().url('Invalid LinkedIn URL').optional(),
+  skills: z.array(z.string().min(1, 'Skill cannot be empty')).min(1, 'At least one skill is required').max(20, 'Cannot exceed 20 skills'),
+  experience: z.enum(['0-1', '1-3', '3-5', '5-10', '10+'], { message: 'Please select a valid experience range' }),
+  position: z.string().min(2, 'Position must be at least 2 characters').max(100, 'Position cannot exceed 100 characters'),
+  expectedSalary: z.number().min(0, 'Salary cannot be negative').max(10000000, 'Salary seems unrealistic').optional(),
+  availability: z.enum(['immediate', 'within-1-week', 'within-2-weeks', 'within-1-month', 'other']).optional(),
+  notes: z.string().max(1000, 'Notes cannot exceed 1000 characters').optional(),
 })
 
 export const candidateUpdateSchema = candidateSchema.partial()
 
-// Interview validation schemas
 export const interviewSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  description: z.string().optional(),
-  candidateId: z.string().min(1, 'Candidate is required'),
-  interviewerId: z.string().min(1, 'Interviewer is required'),
-  type: z.enum(['TECHNICAL', 'BEHAVIORAL', 'SYSTEM_DESIGN']),
-  scheduledAt: z.string().refine((date) => new Date(date) > new Date(), {
-    message: 'Interview must be scheduled in the future'
-  }),
-  duration: z.number().min(15, 'Duration must be at least 15 minutes').max(180, 'Duration cannot exceed 3 hours').optional(),
+  candidateId: z.string().min(1, 'Candidate ID is required'),
+  interviewerId: z.string().min(1, 'Interviewer ID is required'),
+  position: z.string().min(2, 'Position must be at least 2 characters').max(100, 'Position cannot exceed 100 characters'),
+  type: z.enum(['TECHNICAL', 'BEHAVIORAL', 'SYSTEM_DESIGN', 'CODING', 'HR']),
+  status: z.enum(['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).default('SCHEDULED'),
+  scheduledAt: z.string().datetime('Invalid date format').refine((date) => new Date(date) > new Date(), 'Scheduled time must be in the future').transform((date) => new Date(date)),
+  duration: z.number().min(15, 'Duration must be at least 15 minutes').max(300, 'Duration cannot exceed 5 hours').default(60),
+  notes: z.string().max(2000, 'Notes cannot exceed 2000 characters').optional(),
+  questions: z.array(z.string()).optional(),
   aiPersonality: z.enum(['professional', 'friendly', 'technical', 'casual']).optional(),
   techStack: z.array(z.string()).optional(),
   difficultyLevel: z.enum(['junior', 'intermediate', 'senior']).optional(),
 })
 
-export const interviewUpdateSchema = z.object({
-  status: z.enum(['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
-  score: z.number().min(0).max(10).optional(),
-  feedback: z.string().optional(),
-  notes: z.string().optional(),
-})
-
-// Assessment validation schemas
 export const assessmentSchema = z.object({
   interviewId: z.string().min(1, 'Interview ID is required'),
   candidateId: z.string().min(1, 'Candidate ID is required'),
   assessorId: z.string().min(1, 'Assessor ID is required'),
-  technicalScore: z.number().min(0).max(10),
+  technicalScore: z.number().min(0, 'Score cannot be negative').max(10, 'Score cannot exceed 10'),
   communicationScore: z.number().min(0).max(10),
   problemSolvingScore: z.number().min(0).max(10),
   cultureScore: z.number().min(0).max(10),
-  feedback: z.string().min(10, 'Feedback must be at least 10 characters'),
-  recommendation: z.enum(['HIRE', 'NO_HIRE', 'MAYBE']),
+  overallScore: z.number().min(0).max(10),
+  feedback: z.string().min(10, 'Feedback must be at least 10 characters').max(5000, 'Feedback cannot exceed 5000 characters'),
+  recommendation: z.enum(['HIRE', 'NO_HIRE', 'MAYBE', 'SECOND_ROUND']),
   strengths: z.array(z.string()).optional(),
-  weaknesses: z.array(z.string()).optional(),
+  improvements: z.array(z.string()).optional(),
 })
 
-// GitHub analysis validation
 export const githubAnalysisSchema = z.object({
-  candidateId: z.string().min(1, 'Candidate ID is required'),
-  username: z.string().min(1, 'GitHub username is required'),
+  username: z.string().min(1, 'GitHub username is required').regex(/^[a-zA-Z0-9-_]+$/, 'Invalid GitHub username format'),
+  repositoryLimit: z.number().min(1, 'Must analyze at least 1 repository').max(50, 'Cannot analyze more than 50 repositories').default(10),
+  includePrivate: z.boolean().default(false),
 })
 
-// API response schemas
-export const apiResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string().optional(),
-  data: z.any().optional(),
-  error: z.string().optional(),
-})
-
-// Pagination schemas
 export const paginationSchema = z.object({
-  page: z.number().min(1).default(1),
-  limit: z.number().min(1).max(100).default(10),
+  page: z.number().min(1, 'Page must be at least 1').default(1),
+  limit: z.number().min(1, 'Limit must be at least 1').max(100, 'Limit cannot exceed 100').default(10),
   sortBy: z.string().optional(),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 })
 
-// Query parameter schemas
-export const candidateQuerySchema = z.object({
-  search: z.string().optional(),
-  status: z.enum(['APPLIED', 'INTERVIEWING', 'HIRED', 'REJECTED']).optional(),
-  position: z.string().optional(),
-  experience: z.string().optional(),
+export const searchSchema = z.object({
+  query: z.string().min(1, 'Search query is required').optional(),
+  filters: z.record(z.string(), z.any()).optional(),
 }).merge(paginationSchema)
 
-export const interviewQuerySchema = z.object({
-  search: z.string().optional(),
-  status: z.enum(['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
-  type: z.enum(['TECHNICAL', 'BEHAVIORAL', 'SYSTEM_DESIGN']).optional(),
-  candidateId: z.string().optional(),
-  interviewerId: z.string().optional(),
-  from: z.string().optional(), // Date filter
-  to: z.string().optional(),   // Date filter
-}).merge(paginationSchema)
+export const fileUploadSchema = z.object({
+  filename: z.string().min(1, 'Filename is required').max(255, 'Filename too long'),
+  size: z.number().min(1, 'File cannot be empty').max(10 * 1024 * 1024, 'File size cannot exceed 10MB'),
+  mimetype: z.enum(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/gif'], { message: 'Unsupported file type' }),
+})
 
-// Type exports
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
 export type CandidateInput = z.infer<typeof candidateSchema>
 export type CandidateUpdateInput = z.infer<typeof candidateUpdateSchema>
 export type InterviewInput = z.infer<typeof interviewSchema>
-export type InterviewUpdateInput = z.infer<typeof interviewUpdateSchema>
 export type AssessmentInput = z.infer<typeof assessmentSchema>
 export type GitHubAnalysisInput = z.infer<typeof githubAnalysisSchema>
 export type PaginationInput = z.infer<typeof paginationSchema>
-export type CandidateQueryInput = z.infer<typeof candidateQuerySchema>
-export type InterviewQueryInput = z.infer<typeof interviewQuerySchema>
+export type SearchInput = z.infer<typeof searchSchema>
+export type FileUploadInput = z.infer<typeof fileUploadSchema>
 
-// Validation helper functions
-export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): { success: true; data: T } | { success: false; errors: string[] } {
-  try {
-    const validatedData = schema.parse(data)
-    return { success: true, data: validatedData }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        errors: error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`)
+export function formatValidationErrors(error: z.ZodError) {
+  return error.issues.map((issue) => ({
+    path: issue.path.join('.'),
+    message: issue.message,
+    code: issue.code,
+  }))
+}
+
+export function createValidationMiddleware<T>(schema: z.ZodSchema<T>) {
+  return (data: unknown): { success: true; data: T } | { success: false; errors: any[] } => {
+    try {
+      const validatedData = schema.parse(data)
+      return { success: true, data: validatedData }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return { success: false, errors: formatValidationErrors(error) }
       }
-    }
-    return {
-      success: false,
-      errors: ['Validation failed']
+      return { success: false, errors: [{ message: 'Validation failed', code: 'unknown' }] }
     }
   }
 }
 
-// Error response helper
-export function createErrorResponse(message: string, status: number = 400) {
-  return Response.json(
-    { success: false, error: message },
-    { status }
-  )
+export const emailValidation = z.string().email('Invalid email address')
+export const passwordValidation = passwordSchema
+export const phoneValidation = z.string().regex(phoneRegex, 'Invalid phone number format')
+export const urlValidation = z.string().url('Invalid URL format')
+export const dateValidation = z.string().datetime('Invalid date format')
+export const positiveNumberValidation = z.number().min(0, 'Must be a positive number')
+export const requiredStringValidation = z.string().min(1, 'This field is required')
+
+export const sanitizeInput = (input: string): string => {
+  return input.trim().replace(/[<>]/g, '').replace(/javascript:/gi, '').replace(/on\w+=/gi, '')
 }
 
-// Success response helper
-export function createSuccessResponse(data?: any, message?: string) {
-  return Response.json({
+export const validateFileType = (filename: string, allowedTypes: string[]): boolean => {
+  const extension = filename.split('.').pop()?.toLowerCase()
+  return extension ? allowedTypes.includes(extension) : false
+}
+
+// Additional validation schemas
+export const candidateQuerySchema = z.object({
+  page: z.number().min(1).default(1),
+  limit: z.number().min(1).max(100).default(10),
+  search: z.string().optional(),
+  skills: z.array(z.string()).optional(),
+  experience: z.enum(['0-1', '1-3', '3-5', '5-10', '10+']).optional(),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'HIRED', 'REJECTED']).optional(),
+  sortBy: z.enum(['createdAt', 'name', 'experience']).default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+})
+
+// Helper functions for API responses
+export const createErrorResponse = (message: string, status: number = 400, details?: any) => {
+  return NextResponse.json({
+    success: false,
+    error: message,
+    details
+  }, { status })
+}
+
+export const createSuccessResponse = (data: any, message?: string, status: number = 200) => {
+  return NextResponse.json({
     success: true,
-    message,
-    data
-  })
+    data,
+    message
+  }, { status })
 }
 
-// Database entity types (including server fields)
-export interface Candidate {
-  id: string
-  name: string
-  email: string
-  githubUrl?: string | null
-  githubScore?: number | null
-  status: 'APPLIED' | 'SCREENING' | 'INTERVIEWING' | 'ASSESSMENT' | 'OFFERED' | 'HIRED' | 'REJECTED'
-  notes?: string | null
-  createdAt: Date
-  updatedAt: Date
-}
-
-export interface Interview {
-  id: string
-  title: string
-  candidateId: string
-  type: 'technical' | 'behavioral' | 'system-design' | 'cultural-fit'
-  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled'
-  scheduledAt: Date
-  duration?: number | null
-  questions?: any | null // JSON
-  responses?: any | null // JSON
-  score?: number | null
-  feedback?: string | null
-  createdAt: Date
-  updatedAt: Date
-}
-
-export interface Assessment {
-  id: string
-  interviewId: string
-  technicalScore?: number | null
-  communicationScore?: number | null
-  problemSolvingScore?: number | null
-  overallScore?: number | null
-  feedback: string
-  createdAt: Date
-  updatedAt: Date
+// Generic validation function
+export const validateInput = <T>(schema: z.ZodSchema<T>, data: unknown) => {
+  try {
+    return { success: true, data: schema.parse(data) }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, errors: formatValidationErrors(error) }
+    }
+    return { success: false, errors: [{ message: 'Validation failed', code: 'unknown' }] }
+  }
 }

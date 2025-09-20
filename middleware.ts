@@ -1,12 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
+import { UserRole } from '@prisma/client'
+
+// Rate limiting store (in production, use Redis)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
+
+// Security headers
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+}
+
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000 // 15 minutes
+const RATE_LIMITS = {
+  '/api/auth/register': 5,
+  '/api/auth/signin': 10,
+  '/api/candidates': 50,
+  '/api/interviews': 30,
+  default: 100
+}
 
 // Define public routes that don't require authentication
 const publicRoutes = [
   '/',
   '/auth/signin',
-  '/auth/signup',
-  '/api/auth'
+  '/auth/register',
+  '/api/auth',
+  '/landing',
+  '/features',
+  '/privacy',
+  '/terms'
 ]
 
 // Define role-based route access
@@ -23,7 +51,52 @@ const roleBasedRoutes = {
 }
 
 export async function middleware(request: NextRequest) {
+  const response = NextResponse.next()
   const { pathname } = request.nextUrl
+  
+  // Add security headers
+  Object.entries(securityHeaders).forEach(([key, value]) => {
+    response.headers.set(key, value)
+  })
+  
+  // CORS handling for API routes
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    response.headers.set('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 200, headers: response.headers })
+    }
+  }
+  
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for') || 
+             request.headers.get('x-real-ip') || 
+             'anonymous'
+  const key = `${ip}:${request.nextUrl.pathname}`
+  const now = Date.now()
+  
+  const limit = RATE_LIMITS[request.nextUrl.pathname as keyof typeof RATE_LIMITS] || RATE_LIMITS.default
+  
+  const current = rateLimitStore.get(key)
+  if (!current || now > current.resetTime) {
+    rateLimitStore.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW })
+  } else if (current.count >= limit) {
+    return new NextResponse(
+      JSON.stringify({ error: 'Rate limit exceeded' }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': Math.ceil((current.resetTime - now) / 1000).toString(),
+          ...Object.fromEntries(Object.entries(securityHeaders))
+        }
+      }
+    )
+  } else {
+    current.count++
+  }
 
   // Check if the route is public
   const isPublicRoute = publicRoutes.some(route => 
@@ -31,7 +104,7 @@ export async function middleware(request: NextRequest) {
   )
 
   if (isPublicRoute) {
-    return NextResponse.next()
+    return response
   }
 
   // Get the token from the request
@@ -40,8 +113,21 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET 
   })
 
-  // If no token, redirect to signin
+  // If no token, redirect to signin for pages or return 401 for API
   if (!token) {
+    if (pathname.startsWith('/api/')) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: {
+            'Content-Type': 'application/json',
+            ...Object.fromEntries(Object.entries(securityHeaders))
+          }
+        }
+      )
+    }
+    
     const signInUrl = new URL('/auth/signin', request.url)
     signInUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(signInUrl)
