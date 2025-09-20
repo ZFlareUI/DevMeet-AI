@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
+    "build:prod": "next build --turbopack --no-lint",
     "start": "next start",
     "lint": "eslint",
     "db:seed": "ts-node --esm scripts/seed.ts",

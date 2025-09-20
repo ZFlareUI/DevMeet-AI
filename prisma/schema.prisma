@@ -15,6 +15,10 @@ model User {
   image         String?
   password      String?   // For credential-based authentication
   role          UserRole  @default(CANDIDATE)
+  company       String?   // Company name for non-candidates
+  position      String?   // Job position
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

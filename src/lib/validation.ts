@@ -13,6 +13,17 @@ export const registerSchema = z.object({
   role: z.enum(['ADMIN', 'RECRUITER', 'INTERVIEWER', 'CANDIDATE']).optional(),
 })
 
+export const userRegistrationSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long'),
+  email: z.string().email('Invalid email address').toLowerCase(),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'),
+  role: z.enum(['ADMIN', 'RECRUITER', 'INTERVIEWER', 'CANDIDATE']),
+  company: z.string().min(1, 'Company name is required').max(100, 'Company name is too long').optional(),
+  position: z.string().max(100, 'Position is too long').optional(),
+})
+
 // Candidate validation schemas
 export const candidateSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),

@@ -9,19 +9,25 @@ import { UserRole } from '@prisma/client'
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    GitHubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-      profile(profile) {
-        return {
-          id: profile.id.toString(),
-          name: profile.name || profile.login,
-          email: profile.email,
-          image: profile.avatar_url,
-          role: UserRole.CANDIDATE, // Default role for GitHub users
-        }
-      },
-    }),
+    // Only include GitHub provider if credentials are properly configured
+    ...(process.env.GITHUB_CLIENT_ID && 
+        process.env.GITHUB_CLIENT_SECRET && 
+        process.env.GITHUB_CLIENT_ID !== 'your-github-client-id' && 
+        process.env.GITHUB_CLIENT_SECRET !== 'your-github-client-secret'
+      ? [GitHubProvider({
+          clientId: process.env.GITHUB_CLIENT_ID!,
+          clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+          profile(profile) {
+            return {
+              id: profile.id.toString(),
+              name: profile.name || profile.login,
+              email: profile.email,
+              image: profile.avatar_url,
+              role: UserRole.CANDIDATE, // Default role for GitHub users
+            }
+          },
+        })]
+      : []),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -57,11 +63,12 @@ export const authOptions: NextAuthOptions = {
             }
           } else {
             // For real users, check hashed password
-            if (!user.password) {
+            const userWithPassword = user as typeof user & { password?: string }
+            if (!userWithPassword.password) {
               throw new Error('Please sign in with GitHub or contact admin to set up password')
             }
 
-            const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+            const isPasswordValid = await bcrypt.compare(credentials.password, userWithPassword.password)
             if (!isPasswordValid) {
               throw new Error('Invalid credentials')
             }

@@ -32,19 +32,10 @@ export default function LandingPage() {
   const handleSignIn = async () => {
     try {
       setIsLoading(true)
-      const result = await signIn('github', { 
-        redirect: false,
-        callbackUrl: '/dashboard'
-      })
-      
-      if (result?.error) {
-        addToast({ 
-          message: 'Failed to sign in. Please try again.', 
-          type: 'error' 
-        })
-      }
+      // Redirect to auth page instead of trying GitHub directly
+      router.push('/auth')
     } catch (error) {
-      console.error('Sign in error:', error)
+      console.error('Navigation error:', error)
       addToast({ 
         message: 'Something went wrong. Please try again.', 
         type: 'error' 
@@ -52,6 +43,10 @@ export default function LandingPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleDemoAccess = () => {
+    router.push('/auth')
   }
 
   const handleGetStarted = async () => {
@@ -134,20 +129,17 @@ export default function LandingPage() {
                   onClick={handleGetStarted}
                   disabled={isLoading}
                 >
-                  {session ? 'Go to Dashboard' : 'Start Free Trial'}
+                  {session ? 'Go to Dashboard' : 'Try Demo Accounts'}
                   <ArrowRightIcon className="w-5 h-5 ml-2" />
                 </Button>
                 <Button 
                   size="lg" 
                   variant="outline" 
                   className="border-white/20 text-white hover:bg-white/10"
-                  onClick={() => {
-                    const demoSection = document.getElementById('demo')
-                    demoSection?.scrollIntoView({ behavior: 'smooth' })
-                  }}
+                  onClick={handleDemoAccess}
                 >
                   <PlayCircleIcon className="w-5 h-5 mr-2" />
-                  Watch Demo
+                  Access Demo
                 </Button>
               </div>
             </div>
