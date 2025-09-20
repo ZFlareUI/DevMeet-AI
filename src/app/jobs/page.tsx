@@ -108,51 +108,44 @@ export default function JobsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0D001A] via-[#1A0B2E] to-[#2D1B69]">
-      {/* Header */}
-      <header className="bg-black/30 backdrop-blur-xl border-b border-purple-500/20 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                className="text-purple-300 hover:bg-purple-500/20"
-                onClick={() => router.push('/dashboard')}
-              >
-                <ArrowLeftIcon className="w-5 h-5 mr-2" />
-                Back to Dashboard
-              </Button>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-600 bg-clip-text text-transparent">Available Positions</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400" />
-                <input 
-                  type="text" 
-                  placeholder="Search jobs..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-black/30 border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white placeholder-gray-400 backdrop-blur-sm w-64"
-                />
-              </div>
-            </div>
+      <Navigation showBackButton={true} backUrl="/" backLabel="Home" />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">Available Positions</h1>
+          <p className="text-lg text-purple-200">
+            Discover exciting career opportunities in technology
+          </p>
+        </div>
+        
+        {/* Search */}
+        <div className="mb-8 flex justify-center">
+          <div className="relative max-w-md w-full">
+            <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400" />
+            <input 
+              type="text" 
+              placeholder="Search jobs..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-3 bg-gradient-to-r from-black/40 to-purple-900/40 border border-purple-500/40 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-400/50 text-white placeholder-purple-300 backdrop-blur-md w-full transition-all duration-300"
+            />
           </div>
         </div>
-      </header>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Header */}
         <div className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30 shadow-lg">
+            <Card className="bg-gradient-to-br from-black/30 via-cyan-900/20 to-black/30 backdrop-blur-md border border-cyan-500/40 shadow-xl">
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-cyan-400">{filteredJobs.length}</div>
-                <div className="text-sm text-purple-300">Available Jobs</div>
+                <div className="text-sm text-cyan-200">Available Jobs</div>
               </CardContent>
             </Card>
-            <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30 shadow-lg">
+            <Card className="bg-gradient-to-br from-black/30 via-purple-900/20 to-black/30 backdrop-blur-md border border-purple-500/40 shadow-xl">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-cyan-400">{filteredJobs.filter(j => j.urgent).length}</div>
-                <div className="text-sm text-purple-300">Urgent Hiring</div>
+                <div className="text-2xl font-bold text-purple-400">{filteredJobs.filter(j => j.urgent).length}</div>
+                <div className="text-sm text-purple-200">Urgent Hiring</div>
               </CardContent>
             </Card>
             <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30 shadow-lg">

@@ -13,7 +13,9 @@ import {
   SparklesIcon,
   BoltIcon,
   ShieldCheckIcon,
-  RocketLaunchIcon
+  RocketLaunchIcon,
+  CheckIcon,
+  StarIcon
 } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -53,51 +55,95 @@ export default function LandingPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0D001A] via-[#1A0B2E] to-[#2D1B69] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400 mx-auto"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
       </div>
     )
   }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0D001A] via-[#1A0B2E] to-[#2D1B69]">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
       <Navigation />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 md:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className={`transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-                <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight">
-                  Revolutionize
-                  <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                    {" "}Technical Hiring
-                  </span>
-                  <br />
-                  with AI Intelligence
-                </h1>
-                <p className="text-xl text-purple-200 mt-6 leading-relaxed">
-                  The first AI-powered interview platform that combines intelligent conversations 
-                  with real GitHub code analysis to identify the best technical talent.
-                </p>
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-l from-blue-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-r from-indigo-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 backdrop-blur-sm mb-8">
+                <SparklesIcon className="w-4 h-4 text-blue-400 mr-2" />
+                <span className="text-sm font-medium text-blue-200">Revolutionary AI-Powered Hiring Platform</span>
               </div>
-              <div className={`flex flex-col sm:flex-row gap-4 mt-8 transition-all duration-1000 delay-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-                <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-semibold transform hover:scale-105 transition-all duration-300" onClick={handleGetStarted}>
-                  <RocketLaunchIcon className="w-5 h-5 mr-2" />
-                  Start Free Trial
-                  <ArrowRightIcon className="w-5 h-5 ml-2" />
-                </Button>
-                <Button size="lg" variant="outline" className="border-purple-400/50 text-white hover:bg-purple-500/20 transition-all duration-300" onClick={handleWatchDemo}>
-                  <PlayCircleIcon className="w-5 h-5 mr-2" />
-                  Watch Demo
-                </Button>
+              
+              <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-8">
+                The Future of
+                <br />
+                <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-400 bg-clip-text text-transparent">
+                  Technical Hiring
+                </span>
+                <br />
+                is Here
+              </h1>
+              
+              <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed mb-12">
+                Intelligent AI interviews combined with real-time GitHub analysis. 
+                Find the perfect developers 10x faster with zero bias.
+              </p>
+            </div>
+
+            <div className={`flex flex-col sm:flex-row gap-6 justify-center mb-16 transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-500 hover:via-purple-500 hover:to-indigo-500 text-white font-semibold px-8 py-4 text-lg transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-blue-500/25"
+                onClick={handleGetStarted}
+              >
+                <RocketLaunchIcon className="w-6 h-6 mr-3" />
+                Start Free Trial
+                <ArrowRightIcon className="w-5 h-5 ml-3" />
+              </Button>
+              
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-slate-600 text-slate-200 hover:bg-slate-800/50 backdrop-blur-sm px-8 py-4 text-lg transition-all duration-300"
+                onClick={handleWatchDemo}
+              >
+                <PlayCircleIcon className="w-6 h-6 mr-3" />
+                Watch Demo
+              </Button>
+            </div>
+
+            {/* Social Proof */}
+            <div className={`transition-all duration-1000 delay-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+              <p className="text-slate-400 text-sm mb-8">Trusted by innovative companies worldwide</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+                <div className="text-center">
+                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">10x</div>
+                  <div className="text-slate-400 text-sm">Faster Hiring</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">95%</div>
+                  <div className="text-slate-400 text-sm">Accuracy Rate</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">0</div>
+                  <div className="text-slate-400 text-sm">Hiring Bias</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">24hr</div>
+                  <div className="text-slate-400 text-sm">Avg. Process</div>
+                </div>
               </div>
             </div>
-            
-            <div className="relative">
-              <div className="bg-gradient-to-br from-purple-500/20 via-cyan-500/20 to-blue-500/20 rounded-2xl p-8 backdrop-blur-sm border border-purple-500/30 shadow-2xl">
-                <div className="bg-black/40 backdrop-blur-md rounded-lg p-6 shadow-2xl border border-purple-500/20">
-                  <div className="flex items-center justify-between mb-4">
+          </div>
+        </div>
+      </section>
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-400 to-purple-600"></div>
                       <div>
