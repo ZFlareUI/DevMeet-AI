@@ -106,9 +106,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: candidateId } = await params
     const session = await getServerSession(authOptions)
     if (!session) {
       return createErrorResponse('Unauthorized', 401)
@@ -119,8 +120,6 @@ export async function PUT(
       return createErrorResponse('Forbidden', 403)
     }
 
-    const candidateId = params.id
-
     if (!candidateId) {
       return createErrorResponse('Candidate ID is required')
     }
@@ -129,7 +128,7 @@ export async function PUT(
     const validation = validateInput(candidateUpdateSchema, body)
     
     if (!validation.success) {
-      return createErrorResponse(`Validation failed: ${validation.errors.join(', ')}`)
+      return createErrorResponse(`Validation failed: ${validation.errors?.join(', ') || 'Unknown validation error'}`)
     }
 
     const data = validation.data
@@ -144,7 +143,7 @@ export async function PUT(
     }
 
     // Check if email is being changed and if it conflicts
-    if (data.email && data.email !== existingCandidate.email) {
+    if (data?.email && data.email !== existingCandidate.email) {
       const emailConflict = await prisma.candidate.findFirst({
         where: {
           email: data.email,
@@ -158,7 +157,7 @@ export async function PUT(
     }
 
     // Validate GitHub URL if provided
-    if (data.githubUrl && data.githubUrl.trim()) {
+    if (data?.githubUrl && data.githubUrl.trim()) {
       try {
         new URL(data.githubUrl)
         if (!data.githubUrl.includes('github.com')) {
@@ -172,18 +171,18 @@ export async function PUT(
     // Prepare update data
     const updateData: any = {}
     
-    if (data.name) updateData.name = data.name
-    if (data.email) updateData.email = data.email
-    if (data.phone !== undefined) updateData.phone = data.phone
-    if (data.position) updateData.position = data.position
-    if (data.experience) updateData.experience = data.experience
-    if (data.skills) updateData.skills = JSON.stringify(data.skills)
-    if (data.githubUsername !== undefined) updateData.githubUsername = data.githubUsername
-    if (data.githubUrl !== undefined) {
-      updateData.githubUrl = data.githubUrl || (data.githubUsername ? `https://github.com/${data.githubUsername}` : null)
-    }
-    if (data.resume !== undefined) updateData.resume = data.resume
-    if (data.coverLetter !== undefined) updateData.coverLetter = data.coverLetter
+    if (data?.name) updateData.name = data.name
+    if (data?.email) updateData.email = data.email
+    if (data?.phone !== undefined) updateData.phone = data.phone
+    if (data?.position) updateData.position = data.position
+    if (data?.experience) updateData.experience = data.experience
+    if (data?.skills) updateData.skills = JSON.stringify(data.skills)
+    if (data?.linkedinUrl !== undefined) updateData.linkedinUrl = data.linkedinUrl
+    if (data?.githubUrl !== undefined) updateData.githubUrl = data.githubUrl
+    if (data?.resume !== undefined) updateData.resume = data.resume
+    if (data?.expectedSalary !== undefined) updateData.expectedSalary = data.expectedSalary
+    if (data?.availability !== undefined) updateData.availability = data.availability
+    if (data?.notes !== undefined) updateData.notes = data.notes
 
     // Update candidate
     const updatedCandidate = await prisma.candidate.update({
