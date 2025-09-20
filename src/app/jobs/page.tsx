@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Navigation from '@/components/ui/navigation'
 import { ArrowLeftIcon, MagnifyingGlassIcon, MapPinIcon, ClockIcon, CurrencyDollarIcon, BriefcaseIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
