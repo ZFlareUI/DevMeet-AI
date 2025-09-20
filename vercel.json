@@ -6,7 +6,10 @@
   "framework": "nextjs",
   "functions": {
     "pages/api/socket/io.ts": {
-      "runtime": "nodejs18.x"
+      "runtime": "@vercel/node@3.0.7"
+    },
+    "app/api/**/*.ts": {
+      "runtime": "@vercel/node@3.0.7"
     }
   },
   "rewrites": [
@@ -16,6 +19,6 @@
     }
   ],
   "env": {
-    "NEXTAUTH_URL": "https://devmeetai.vercel.app"
+    "NEXTAUTH_URL": "https://devmeet-ai.vercel.app"
   }
 }
