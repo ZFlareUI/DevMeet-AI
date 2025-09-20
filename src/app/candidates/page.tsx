@@ -73,10 +73,10 @@ export default function CandidatesPage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#0D001A] via-[#1A0B2E] to-[#2D1B69] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading candidates...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400 mx-auto"></div>
+          <p className="mt-4 text-purple-200">Loading candidates...</p>
         </div>
       </div>
     );
@@ -87,25 +87,25 @@ export default function CandidatesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#0D001A] via-[#1A0B2E] to-[#2D1B69]">
       {/* Header */}
-      <div className="bg-white shadow">
+      <div className="bg-black/30 backdrop-blur-xl border-b border-purple-500/20 shadow-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Candidates</h1>
-              <p className="mt-1 text-sm text-gray-600">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Candidates</h1>
+              <p className="mt-1 text-sm text-purple-200">
                 Manage your candidate pipeline and schedule interviews
               </p>
             </div>
             <div className="flex space-x-3">
               <Link href="/dashboard">
-                <Button variant="outline">
+                <Button variant="outline" className="border-purple-500/30 text-purple-300 hover:bg-purple-500/20">
                   Back to Dashboard
                 </Button>
               </Link>
               <Link href="/candidates/new">
-                <Button className="bg-blue-600 hover:bg-blue-700">
+                <Button className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700">
                   <PlusIcon className="w-4 h-4 mr-2" />
                   Add Candidate
                 </Button>
@@ -117,7 +117,7 @@ export default function CandidatesPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters and Search */}
-        <Card className="mb-6">
+        <Card className="mb-6 bg-black/20 backdrop-blur-sm border-purple-500/30">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
               <form onSubmit={handleSearch} className="flex-1 max-w-md">
@@ -128,7 +128,7 @@ export default function CandidatesPage() {
                     placeholder="Search candidates..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 bg-black/30 border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white placeholder-gray-400"
                   />
                 </div>
               </form>
@@ -136,12 +136,12 @@ export default function CandidatesPage() {
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <FunnelIcon className="w-5 h-5 text-gray-400" />
-                  <span className="text-sm text-gray-600">Filter:</span>
+                  <span className="text-sm text-gray-300">Filter:</span>
                 </div>
                 <select
                   value={statusFilter}
                   onChange={(e) => handleStatusFilter(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="bg-black/30 border border-purple-500/30 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white"
                 >
                   <option value="all">All Candidates</option>
                   <option value="active">Active</option>

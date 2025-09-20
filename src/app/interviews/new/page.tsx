@@ -124,34 +124,37 @@ export default function NewInterviewPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#0D001A] via-[#1A0B2E] to-[#2D1B69]">
       {/* Header */}
-      <div className="bg-white shadow">
+      <div className="bg-black/30 backdrop-blur-xl border-b border-purple-500/20 shadow-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center py-6">
             <Link href="/interviews" className="mr-4">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" className="border-purple-400/50 text-purple-300 hover:bg-purple-500/20">
                 <ArrowLeftIcon className="w-4 h-4 mr-2" />
                 Back to Interviews
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Schedule New Interview</h1>
-              <p className="mt-1 text-sm text-gray-600">
-                Set up an AI-powered interview session
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Schedule New Interview</h1>
+              <p className="mt-1 text-sm text-purple-200">
+                Set up an AI-powered interview session with advanced analytics
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card>
-          <CardContent className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Form */}
+          <div className="lg:col-span-2">
+            <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30 shadow-2xl">
+              <CardContent className="p-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
               {/* Interview Title */}
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="title" className="block text-sm font-medium text-purple-200 mb-2">
                   Interview Title *
                 </label>
                 <input
@@ -160,17 +163,17 @@ export default function NewInterviewPage() {
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.title ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3 bg-black/30 border-2 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white placeholder-purple-300 transition-all duration-300 ${
+                    errors.title ? 'border-red-500' : 'border-purple-500/30'
                   }`}
                   placeholder="e.g. Technical Interview - Frontend Developer"
                 />
-                {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
+                {errors.title && <p className="mt-1 text-sm text-red-400">{errors.title}</p>}
               </div>
 
               {/* Candidate Selection */}
               <div>
-                <label htmlFor="candidateId" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="candidateId" className="block text-sm font-medium text-purple-200 mb-2">
                   Candidate *
                 </label>
                 <select
@@ -178,25 +181,25 @@ export default function NewInterviewPage() {
                   name="candidateId"
                   value={formData.candidateId}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.candidateId ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3 bg-black/30 border-2 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-300 ${
+                    errors.candidateId ? 'border-red-500' : 'border-purple-500/30'
                   }`}
                   disabled={isLoadingCandidates}
                 >
-                  <option value="">Select a candidate</option>
+                  <option value="" className="bg-gray-800">Select a candidate</option>
                   {candidates.map((candidate) => (
-                    <option key={candidate.id} value={candidate.id}>
+                    <option key={candidate.id} value={candidate.id} className="bg-gray-800">
                       {candidate.name} ({candidate.email})
                     </option>
                   ))}
                 </select>
-                {errors.candidateId && <p className="mt-1 text-sm text-red-600">{errors.candidateId}</p>}
-                {isLoadingCandidates && <p className="mt-1 text-sm text-gray-500">Loading candidates...</p>}
+                {errors.candidateId && <p className="mt-1 text-sm text-red-400">{errors.candidateId}</p>}
+                {isLoadingCandidates && <p className="mt-1 text-sm text-purple-300">Loading candidates...</p>}
               </div>
 
               {/* Interview Type */}
               <div>
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="type" className="block text-sm font-medium text-purple-200 mb-2">
                   Interview Type *
                 </label>
                 <select
@@ -204,20 +207,20 @@ export default function NewInterviewPage() {
                   name="type"
                   value={formData.type}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.type ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3 bg-black/30 border-2 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-300 ${
+                    errors.type ? 'border-red-500' : 'border-purple-500/30'
                   }`}
                 >
-                  <option value="TECHNICAL">Technical Interview</option>
-                  <option value="BEHAVIORAL">Behavioral Interview</option>
-                  <option value="SYSTEM_DESIGN">System Design Interview</option>
+                  <option value="TECHNICAL" className="bg-gray-800">Technical Interview</option>
+                  <option value="BEHAVIORAL" className="bg-gray-800">Behavioral Interview</option>
+                  <option value="SYSTEM_DESIGN" className="bg-gray-800">System Design Interview</option>
                 </select>
-                {errors.type && <p className="mt-1 text-sm text-red-600">{errors.type}</p>}
+                {errors.type && <p className="mt-1 text-sm text-red-400">{errors.type}</p>}
               </div>
 
               {/* Scheduled Date/Time */}
               <div>
-                <label htmlFor="scheduledAt" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="scheduledAt" className="block text-sm font-medium text-purple-200 mb-2">
                   Scheduled Date & Time *
                 </label>
                 <input
@@ -226,16 +229,16 @@ export default function NewInterviewPage() {
                   name="scheduledAt"
                   value={formData.scheduledAt || getDefaultDateTime()}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.scheduledAt ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3 bg-black/30 border-2 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-300 ${
+                    errors.scheduledAt ? 'border-red-500' : 'border-purple-500/30'
                   }`}
                 />
-                {errors.scheduledAt && <p className="mt-1 text-sm text-red-600">{errors.scheduledAt}</p>}
+                {errors.scheduledAt && <p className="mt-1 text-sm text-red-400">{errors.scheduledAt}</p>}
               </div>
 
               {/* Duration */}
               <div>
-                <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="duration" className="block text-sm font-medium text-purple-200 mb-2">
                   Duration (minutes)
                 </label>
                 <select
@@ -243,52 +246,109 @@ export default function NewInterviewPage() {
                   name="duration"
                   value={formData.duration?.toString() || '60'}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-black/30 border-2 border-purple-500/30 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-300"
                 >
-                  <option value="30">30 minutes</option>
-                  <option value="45">45 minutes</option>
-                  <option value="60">60 minutes</option>
-                  <option value="90">90 minutes</option>
-                  <option value="120">2 hours</option>
+                  <option value="30" className="bg-gray-800">30 minutes</option>
+                  <option value="45" className="bg-gray-800">45 minutes</option>
+                  <option value="60" className="bg-gray-800">60 minutes</option>
+                  <option value="90" className="bg-gray-800">90 minutes</option>
+                  <option value="120" className="bg-gray-800">2 hours</option>
                 </select>
               </div>
 
               {/* Submit Button */}
-              <div className="flex justify-end space-x-4">
+              <div className="flex justify-end space-x-4 pt-6 border-t border-purple-500/20">
                 <Link href="/interviews">
-                  <Button type="button" variant="outline" disabled={isLoading}>
+                  <Button type="button" variant="outline" disabled={isLoading} className="border-purple-400/50 text-purple-300 hover:bg-purple-500/20">
                     Cancel
                   </Button>
                 </Link>
-                <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
+                <Button type="submit" disabled={isLoading} className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white px-8 py-3 font-semibold shadow-lg transform hover:scale-105 transition-all duration-300">
                   {isLoading ? 'Scheduling...' : 'Schedule Interview'}
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
+        </div>
 
-        {/* Info Card */}
-        <Card className="mt-6">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        {/* Sidebar with Info */}
+        <div className="space-y-6">
+          {/* AI Features Card */}
+          <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30 shadow-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
+                <h3 className="text-lg font-semibold text-white">AI-Powered Interviews</h3>
               </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-900">AI-Powered Interviews</h3>
-                <p className="mt-1 text-sm text-gray-600">
-                  Our AI interviewer will conduct the interview, ask relevant questions based on the type selected, 
-                  and provide detailed assessments. The candidate will receive a link to join the interview at the scheduled time.
-                </p>
+              <div className="space-y-3 text-sm text-purple-200">
+                <div className="flex items-start space-x-2">
+                  <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Smart question generation based on interview type</p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Real-time GitHub profile analysis</p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Automated scoring and detailed feedback</p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Video recording for later review</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Interview Types Card */}
+          <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30 shadow-2xl">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Interview Types</h3>
+              <div className="space-y-4">
+                <div className="p-3 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 rounded-lg">
+                  <h4 className="font-medium text-emerald-400 mb-1">Technical</h4>
+                  <p className="text-xs text-purple-200">Coding challenges, algorithm questions, system architecture</p>
+                </div>
+                <div className="p-3 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 rounded-lg">
+                  <h4 className="font-medium text-purple-400 mb-1">Behavioral</h4>
+                  <p className="text-xs text-purple-200">Communication skills, teamwork, problem-solving approach</p>
+                </div>
+                <div className="p-3 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-lg">
+                  <h4 className="font-medium text-cyan-400 mb-1">System Design</h4>
+                  <p className="text-xs text-purple-200">Architecture planning, scalability, design patterns</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tips Card */}
+          <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30 shadow-2xl">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Pro Tips</h3>
+              <div className="space-y-3 text-sm text-purple-200">
+                <div className="flex items-start space-x-2">
+                  <div className="w-1.5 h-1.5 bg-amber-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Schedule interviews at least 24 hours in advance</p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <div className="w-1.5 h-1.5 bg-amber-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Ensure candidates have their GitHub profiles updated</p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <div className="w-1.5 h-1.5 bg-amber-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>60-90 minutes works best for technical interviews</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        </div>
       </div>
     </div>
   );
