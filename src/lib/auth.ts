@@ -91,6 +91,7 @@ export const authOptions: NextAuthOptions = {
               email: profile.email,
               image: profile.avatar_url,
               role: UserRole.CANDIDATE, // Default role for GitHub users
+              organizationId: '', // This will be set in the JWT callback when user is created
             }
           },
         })]
@@ -175,6 +176,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email!,
             name: user.name,
             role: user.role,
+            organizationId: user.organizationId,
             company: user.company || undefined,
             position: user.position || undefined,
             image: user.image
@@ -197,6 +199,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role || UserRole.CANDIDATE
         token.id = user.id
+        token.organizationId = user.organizationId
         token.company = user.company
         token.position = user.position
       }
@@ -210,6 +213,14 @@ export const authOptions: NextAuthOptions = {
           })
 
           if (!dbUser) {
+            // Create organization for new GitHub user
+            const organization = await prisma.organization.create({
+              data: {
+                name: `${user.name || 'GitHub User'}'s Organization`,
+                slug: `github-${user.id}-${Date.now()}`,
+              }
+            })
+
             // Create new user from GitHub profile
             dbUser = await prisma.user.create({
               data: {
@@ -218,6 +229,7 @@ export const authOptions: NextAuthOptions = {
                 name: user.name || 'GitHub User',
                 image: user.image,
                 role: UserRole.CANDIDATE,
+                organizationId: organization.id,
                 emailVerified: new Date()
               }
             })
@@ -225,6 +237,7 @@ export const authOptions: NextAuthOptions = {
 
           token.role = dbUser.role
           token.id = dbUser.id
+          token.organizationId = dbUser.organizationId
           token.company = dbUser.company
           token.position = dbUser.position
         } catch (error) {
@@ -238,6 +251,7 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         session.user.id = token.id || token.sub!
         session.user.role = token.role as UserRole
+        session.user.organizationId = token.organizationId as string
         session.user.company = token.company
         session.user.position = token.position
       }

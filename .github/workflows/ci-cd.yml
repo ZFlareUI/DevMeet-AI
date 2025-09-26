@@ -175,7 +175,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: docker-build
     if: github.ref == 'refs/heads/develop'
-    environment: staging
+    # environment: staging  # Uncomment when staging environment is configured in GitHub
 
     steps:
     - name: Deploy to staging

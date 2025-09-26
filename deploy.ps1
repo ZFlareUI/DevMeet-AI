@@ -142,7 +142,8 @@ function Start-ApplicationDeployment {
     
     Write-Success "Application deployed successfully as container: $ContainerName"
 }
-    
+
+function Test-ApplicationHealth {
     # Wait for application to be ready
     Write-Info "Waiting for application to start..."
     Start-Sleep -Seconds 30

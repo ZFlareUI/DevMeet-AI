@@ -7,9 +7,10 @@ import { Analytics } from '@/lib/monitoring'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
@@ -19,7 +20,7 @@ export async function GET(
       )
     }
 
-    const fileId = params.id
+    const fileId = id
 
     // Find file and verify access
     const file = await prisma.uploadedFile.findFirst({
