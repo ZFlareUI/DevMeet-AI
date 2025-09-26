@@ -1,15 +1,16 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
+  "buildCommand": "npm run build:vercel",
   "installCommand": "npm install",
   "framework": "nextjs",
   "functions": {
     "pages/api/socket/io.ts": {
-      "runtime": "@vercel/node@3.0.7"
+      "runtime": "@vercel/node@3.0.7",
+      "maxDuration": 30
     },
-    "app/api/**/*.ts": {
-      "runtime": "@vercel/node@3.0.7"
+    "src/app/api/**/*.ts": {
+      "runtime": "@vercel/node@3.0.7",
+      "maxDuration": 30
     }
   },
   "rewrites": [
@@ -19,6 +20,8 @@
     }
   ],
   "env": {
-    "NEXTAUTH_URL": "https://devmeet-ai.vercel.app"
-  }
+    "NEXTAUTH_URL": "https://devmeet-ai.vercel.app",
+    "NODE_ENV": "production"
+  },
+  "regions": ["iad1"]
 }
