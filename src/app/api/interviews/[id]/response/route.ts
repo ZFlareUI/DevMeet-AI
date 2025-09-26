@@ -66,7 +66,13 @@ export async function POST(
     questions.currentIndex = questionIndex + 1
 
     // Generate follow-up question if needed
-    let followUpQuestion: any = null
+    let followUpQuestion: {
+      id: string
+      question: string
+      type: string
+      difficulty: string
+      isFollowUp: boolean
+    } | null = null
     if (evaluation.followUp) {
       followUpQuestion = {
         id: `followup_${questionIndex}`,

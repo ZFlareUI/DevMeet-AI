@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/lib/prisma'
 
+// Auth token interface
+interface AuthToken {
+  id?: string
+  role?: string
+  organizationId?: string
+  email?: string
+  name?: string
+}
+
 // Simple rate limiter implementation
 class SimpleRateLimiter {
   private requests: Map<string, number[]> = new Map()
@@ -82,7 +91,7 @@ async function logSecurityEvent(event: {
   userAgent: string
   path: string
   userId?: string
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 }) {
   try {
     await prisma.securityLog.create({
@@ -182,14 +191,14 @@ export async function requireAuth(request: NextRequest, roles?: string[]): Promi
   
   // Check role-based access
   if (roles && roles.length > 0) {
-    const userRole = (token as any).role as string
+    const userRole = (token as AuthToken).role as string
     if (!roles.includes(userRole)) {
       await logSecurityEvent({
         type: 'access_denied',
         ip,
         userAgent: request.headers.get('user-agent') || '',
         path: pathname,
-        userId: (token as any).id as string,
+        userId: (token as AuthToken).id as string,
         details: { userRole, requiredRoles: roles }
       })
       
@@ -277,14 +286,14 @@ export async function securityMiddleware(request: NextRequest): Promise<NextResp
 
 // Helper function to protect API routes
 export function createProtectedHandler(
-  handler: (request: NextRequest, context?: any) => Promise<NextResponse>,
+  handler: (request: NextRequest, context?: Record<string, unknown>) => Promise<NextResponse>,
   options: {
     requireAuth?: boolean
     roles?: string[]
     auditAction?: string
   } = {}
 ) {
-  return async (request: NextRequest, context?: any) => {
+  return async (request: NextRequest, context?: Record<string, unknown>) => {
     try {
       // Apply security middleware
       const securityResponse = await securityMiddleware(request)
@@ -302,7 +311,7 @@ export function createProtectedHandler(
       let userId: string | undefined
       if (options.requireAuth) {
         const token = await getToken({ req: request })
-        userId = (token as any)?.id as string
+        userId = (token as AuthToken)?.id as string
       }
       
       // Create audit trail

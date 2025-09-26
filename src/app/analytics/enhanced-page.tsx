@@ -62,7 +62,7 @@ interface PerformanceData {
 interface ErrorData {
   errors: Array<{
     error: string
-    context: Record<string, any>
+    context: Record<string, unknown>
     userId?: string
     severity: string
     timestamp: string

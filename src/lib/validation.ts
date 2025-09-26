@@ -197,7 +197,7 @@ export const candidateQuerySchema = z.object({
   search: z.string().optional(),
   skills: z.array(z.string()).optional(),
   experience: z.enum(['0-1', '1-3', '3-5', '5-10', '10+']).optional(),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'HIRED', 'REJECTED']).optional(),
+  status: z.enum(['APPLIED', 'SCREENING', 'INTERVIEWING', 'ASSESSMENT', 'OFFERED', 'HIRED', 'REJECTED']).optional(),
   sortBy: z.enum(['createdAt', 'name', 'experience']).default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 })

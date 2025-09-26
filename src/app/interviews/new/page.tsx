@@ -19,13 +19,18 @@ export default function NewInterviewPage() {
   
   const candidateId = searchParams?.get('candidateId');
   
-  const [formData, setFormData] = useState<InterviewInput>({
+  const [formData, setFormData] = useState({
     title: '',
     candidateId: candidateId || '',
     interviewerId: session?.user?.id || '',
-    type: 'TECHNICAL',
+    position: '',
+    type: 'TECHNICAL' as const,
     scheduledAt: '',
-    duration: 60
+    duration: 60,
+    notes: '',
+    aiPersonality: 'professional' as const,
+    techStack: [] as string[],
+    difficultyLevel: 'intermediate' as const
   });
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +54,7 @@ export default function NewInterviewPage() {
       const response = await api.candidates.getAll();
       if (response.success) {
         // Filter to only show candidates available for interviews
-        const availableCandidates = response.data.filter((candidate: any) => 
+        const availableCandidates = response.data.filter((candidate: { status: string }) => 
           !['HIRED', 'REJECTED'].includes(candidate.status)
         );
         setCandidates(availableCandidates);
@@ -88,9 +93,9 @@ export default function NewInterviewPage() {
     const validation = validateInput(interviewSchema, formData);
     if (!validation.success) {
       const fieldErrors: Record<string, string> = {};
-      validation.errors.forEach(error => {
-        const [field, message] = error.split(': ');
-        fieldErrors[field] = message;
+      validation.errors?.forEach(error => {
+        const field = error.path.replace(/\./g, '_');
+        fieldErrors[field] = error.message;
       });
       setErrors(fieldErrors);
       return;

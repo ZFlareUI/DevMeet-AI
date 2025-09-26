@@ -13,6 +13,18 @@ import {
 } from '@/lib/stripe';
 import { SubscriptionPlan } from '@prisma/client';
 
+type PlanConfig = {
+  name: string;
+  price: number;
+  stripePriceId?: string;
+  limits: {
+    candidates: number;
+    interviews: number;
+    storage: number;
+    teamMembers: number;
+  };
+};
+
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -116,7 +128,7 @@ export async function POST(req: NextRequest) {
         }
 
         const planConfig = getPlanConfig(plan as SubscriptionPlan);
-        if (!(planConfig as any).stripePriceId) {
+        if (!(planConfig as PlanConfig).stripePriceId) {
           return NextResponse.json(
             { error: 'Invalid plan configuration' },
             { status: 400 }
@@ -143,7 +155,7 @@ export async function POST(req: NextRequest) {
         // Create Stripe subscription
         const stripeSubscription = await createStripeSubscription(
           stripeCustomerId,
-          (planConfig as any).stripePriceId,
+          (planConfig as PlanConfig).stripePriceId!,
           organization.id
         );
 
@@ -157,7 +169,7 @@ export async function POST(req: NextRequest) {
             currentPeriodEnd: new Date((stripeSubscription as any).current_period_end * 1000),
             stripeCustomerId,
             stripeSubscriptionId: stripeSubscription.id,
-            stripePriceId: (planConfig as any).stripePriceId,
+            stripePriceId: (planConfig as PlanConfig).stripePriceId,
           },
         });
 
@@ -182,7 +194,7 @@ export async function POST(req: NextRequest) {
         }
 
         const planConfig = getPlanConfig(plan as SubscriptionPlan);
-        if (!(planConfig as any).stripePriceId) {
+        if (!(planConfig as PlanConfig).stripePriceId) {
           return NextResponse.json(
             { error: 'Invalid plan configuration' },
             { status: 400 }
@@ -192,7 +204,7 @@ export async function POST(req: NextRequest) {
         // Update Stripe subscription
         const updatedSubscription = await updateStripeSubscription(
           currentSubscription.stripeSubscriptionId,
-          (planConfig as any).stripePriceId
+          (planConfig as PlanConfig).stripePriceId!
         );
 
         // Update database
@@ -200,7 +212,7 @@ export async function POST(req: NextRequest) {
           where: { id: currentSubscription.id },
           data: {
             plan: plan as SubscriptionPlan,
-            stripePriceId: (planConfig as any).stripePriceId,
+            stripePriceId: (planConfig as PlanConfig).stripePriceId,
             currentPeriodEnd: new Date((updatedSubscription as any).current_period_end * 1000),
           },
         });

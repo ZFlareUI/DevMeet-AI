@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         interviewId,
         candidateId,
         assessorId,
-        organizationId: (session.user as any).organizationId,
+        organizationId: session.user.organizationId,
         technicalScore,
         communicationScore,
         problemSolvingScore,

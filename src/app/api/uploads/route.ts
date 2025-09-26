@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { writeFile, mkdir } from 'fs/promises'
+import { writeFile, mkdir, unlink } from 'fs/promises'
 import { join } from 'path'
 import { prisma } from '@/lib/prisma'
 import { Analytics } from '@/lib/monitoring'
+import { Prisma } from '@prisma/client'
 
 // File upload configuration
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -169,7 +170,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
 
     // Build query
-    const where: any = {
+    const where: Prisma.UploadedFileWhereInput = {
       uploadedBy: session.user.id
     }
 
@@ -270,8 +271,7 @@ export async function DELETE(request: NextRequest) {
 
     // Delete physical file
     try {
-      const fs = require('fs').promises
-      await fs.unlink(file.filePath)
+      await unlink(file.filePath)
     } catch (fsError) {
       console.warn('Failed to delete physical file:', fsError)
       // Continue with database deletion even if physical file deletion fails

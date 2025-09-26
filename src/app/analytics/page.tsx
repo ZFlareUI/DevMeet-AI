@@ -1,5 +1,34 @@
 'use client'
 
+interface CandidateSummary {
+  id: string
+  name: string
+  position: string
+  status: string
+  createdAt: string
+}
+
+interface InterviewSummary {
+  id: string
+  title: string
+  candidate: { name: string }
+  status: string
+  scheduledAt: string
+  score?: number
+}
+
+interface AnalyticsData {
+  totalCandidates: number
+  totalInterviews: number
+  completedInterviews: number
+  avgScore: number
+  hireRate: number
+  recentCandidates: CandidateSummary[]
+  recentInterviews: InterviewSummary[]
+  scoreDistribution: { range: string; count: number }[]
+  positionStats: { position: string; count: number; avgScore: number }[]
+}
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Navigation from '@/components/ui/navigation'
@@ -20,8 +49,8 @@ interface DashboardStats {
   completedInterviews: number
   avgScore: number
   hireRate: number
-  recentCandidates: any[]
-  recentInterviews: any[]
+  recentCandidates: CandidateSummary[]
+  recentInterviews: InterviewSummary[]
   scoreDistribution: { range: string; count: number }[]
   positionStats: { position: string; count: number; avgScore: number }[]
 }
@@ -29,7 +58,7 @@ interface DashboardStats {
 const StatCard = ({ title, value, icon: Icon, trend, color = 'blue' }: {
   title: string
   value: string | number
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
   trend?: string
   color?: string
 }) => (

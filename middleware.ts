@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { UserRole } from '@prisma/client'
 
+interface AuthToken {
+  id?: string
+  role?: UserRole
+  organizationId?: string
+  email?: string
+  name?: string
+}
+
 // Define public routes that don't require authentication
 const publicRoutes = [
   '/',
@@ -99,8 +107,8 @@ export async function middleware(request: NextRequest) {
   
   // Check admin routes
   if (isAdminRoute) {
-    const userRole = (token as any)?.role as UserRole
-    if (userRole !== UserRole.ADMIN) {
+    const userRole = (token as AuthToken)?.role
+    if (!userRole || userRole !== UserRole.ADMIN) {
       if (pathname.startsWith('/api/')) {
         return NextResponse.json(
           { error: 'Access denied' },
@@ -116,12 +124,12 @@ export async function middleware(request: NextRequest) {
   
   // Check API route permissions
   if (pathname.startsWith('/api/')) {
-    const userRole = (token as any)?.role as UserRole
+    const userRole = (token as AuthToken)?.role
     
     // Check specific API route permissions
     for (const [route, allowedRoles] of Object.entries(apiRoleRoutes)) {
       if (pathname.startsWith(route)) {
-        if (!allowedRoles.includes(userRole)) {
+        if (!userRole || !allowedRoles.includes(userRole)) {
           return NextResponse.json(
             { error: 'Insufficient permissions' },
             { status: 403, headers: response.headers }
@@ -135,9 +143,9 @@ export async function middleware(request: NextRequest) {
   // Add user info to headers for API routes
   if (pathname.startsWith('/api/')) {
     const requestHeaders = new Headers(request.headers)
-    requestHeaders.set('x-user-id', (token as any)?.id || '')
-    requestHeaders.set('x-user-role', (token as any)?.role || '')
-    requestHeaders.set('x-user-email', (token as any)?.email || '')
+    requestHeaders.set('x-user-id', (token as AuthToken)?.id || '')
+    requestHeaders.set('x-user-role', (token as AuthToken)?.role || '')
+    requestHeaders.set('x-user-email', (token as AuthToken)?.email || '')
 
     return NextResponse.next({
       request: {

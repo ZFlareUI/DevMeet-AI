@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { signIn, getProviders, useSession } from 'next-auth/react'
+import type { ClientSafeProvider } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
@@ -34,7 +35,7 @@ export default function SignInPage() {
   
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [providers, setProviders] = useState<any>(null)
+  const [providers, setProviders] = useState<Record<string, ClientSafeProvider> | null>(null)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
