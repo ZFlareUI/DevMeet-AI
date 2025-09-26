@@ -1,4 +1,4 @@
-# DevMeet-AI 🚀
+# DevMeet-AI
 
 **Next-Generation AI-Powered Interview Platform**
 
@@ -10,9 +10,9 @@ DevMeet-AI is a comprehensive, production-ready interview management platform th
 [![Prisma](https://img.shields.io/badge/Prisma-5.0-darkgreen)](https://www.prisma.io/)
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-black)](https://vercel.com)
 
-## ✨ Features
+## Features
 
-### 🎯 Core Functionality
+### Core Functionality
 - **Smart Candidate Management** - Comprehensive candidate tracking with status management
 - **AI-Powered Interviews** - Intelligent interview scheduling and management
 - **GitHub Integration** - Automated code analysis and developer assessment
@@ -20,13 +20,13 @@ DevMeet-AI is a comprehensive, production-ready interview management platform th
 - **Secure File Uploads** - Resume and document management with validation
 - **Role-Based Access Control** - Multi-role support (Admin, Recruiter, Interviewer, Candidate)
 
-### 🛡️ Security & Reliability
+### Security & Reliability
 - **Enterprise-Grade Security** - Rate limiting, CSRF protection, and audit trails
 - **Comprehensive Monitoring** - Performance tracking, error logging, and health checks
 - **Production-Ready** - Battle-tested deployment configurations and best practices
 - **Scalable Architecture** - Built for high-traffic environments
 
-### 📊 Advanced Analytics
+### Advanced Analytics
 - **Performance Dashboards** - Real-time metrics and KPI tracking
 - **Interview Analytics** - Success rates, duration analysis, and outcome tracking
 - **Candidate Insights** - Skill analysis, experience mapping, and trend identification
