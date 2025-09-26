@@ -21,9 +21,9 @@ test.describe('Authentication Flow', () => {
     
     // Check for register elements
     await expect(page.getByRole('heading', { name: /create account/i })).toBeVisible()
-    await expect(page.getByLabelText(/name/i)).toBeVisible()
-    await expect(page.getByLabelText(/email/i)).toBeVisible()
-    await expect(page.getByLabelText(/password/i)).toBeVisible()
+    await expect(page.getByLabel(/name/i)).toBeVisible()
+    await expect(page.getByLabel(/email/i)).toBeVisible()
+    await expect(page.getByLabel(/password/i)).toBeVisible()
     await expect(page.getByRole('button', { name: /create account/i })).toBeVisible()
   })
 
@@ -42,7 +42,7 @@ test.describe('Authentication Flow', () => {
   test('should show password strength indicator', async ({ page }) => {
     await page.goto('/auth/register')
     
-    const passwordInput = page.getByLabelText(/password/i)
+    const passwordInput = page.getByLabel(/password/i)
     
     // Test weak password
     await passwordInput.fill('123')
