@@ -56,11 +56,17 @@ jobs:
 
     - name: Setup environment variables
       run: |
-        cp .env.example .env.test
+        # Create .env.test file with required variables
+        if [ -f .env.example ]; then
+          cp .env.example .env.test
+        else
+          touch .env.test
+        fi
         echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/devmeet_test?schema=public" >> .env.test
         echo "REDIS_URL=redis://localhost:6379" >> .env.test
         echo "NEXTAUTH_SECRET=test-secret-key-for-github-actions" >> .env.test
         echo "NEXTAUTH_URL=http://localhost:3000" >> .env.test
+        echo "NODE_ENV=test" >> .env.test
 
     - name: Generate Prisma client
       run: npx prisma generate
