@@ -91,6 +91,7 @@ export const authOptions: NextAuthOptions = {
               email: profile.email,
               image: profile.avatar_url,
               role: UserRole.CANDIDATE, // Default role for GitHub users
+              organizationId: '', // This will be set in the JWT callback when user is created
             }
           },
         })]

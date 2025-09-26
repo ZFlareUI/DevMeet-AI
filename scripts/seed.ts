@@ -5,6 +5,17 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Seeding database...')
 
+  // Create demo organization first
+  const organization = await prisma.organization.upsert({
+    where: { slug: 'devmeet-ai-demo' },
+    update: {},
+    create: {
+      name: 'DevMeet AI Demo',
+      slug: 'devmeet-ai-demo',
+    }
+  })
+  console.log(`✅ Created organization: ${organization.name}`)
+
   // Create demo users
   const users = [
     {
@@ -35,6 +46,7 @@ async function main() {
       update: {},
       create: {
         ...userData,
+        organizationId: organization.id,
         id: `user_${userData.role.toLowerCase()}_${Date.now()}`
       }
     })
