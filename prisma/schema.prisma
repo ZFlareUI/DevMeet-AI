@@ -7,57 +7,51 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Multi-tenant Organization model
 model Organization {
-  id              String            @id @default(cuid())
-  name            String
-  slug            String            @unique
-  domain          String?           @unique // Custom domain support
-  logo            String?
-  settings        String            @default("{}") // JSON settings
-  plan            SubscriptionPlan  @default(FREE)
-  planLimits      String            @default("{}") // JSON plan limits
-  isActive        Boolean           @default(true)
-  trialEndsAt     DateTime?
-  stripeCustomerId String?          @unique // Stripe customer ID
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-
-  // Relations
-  users           User[]
-  candidates      Candidate[]
-  interviews      Interview[]
-  assessments     Assessment[]
-  githubAnalyses  GitHubAnalysis[]
-  subscriptions   Subscription[]
-  invitations     Invitation[]
-  usageMetrics    UsageMetric[]
-  uploadedFiles   UploadedFile[]
+  id               String           @id @default(cuid())
+  name             String
+  slug             String           @unique
+  domain           String?          @unique
+  logo             String?
+  settings         String           @default("{}")
+  plan             SubscriptionPlan @default(FREE)
+  planLimits       String           @default("{}")
+  isActive         Boolean          @default(true)
+  trialEndsAt      DateTime?
+  stripeCustomerId String?          @unique
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  assessments      Assessment[]
+  candidates       Candidate[]
+  githubAnalyses   GitHubAnalysis[]
+  interviews       Interview[]
+  invitations      Invitation[]
+  subscriptions    Subscription[]
+  uploadedFiles    UploadedFile[]
+  usageMetrics     UsageMetric[]
+  users            User[]
 
   @@map("organizations")
 }
 
-// Subscription management
 model Subscription {
-  id                String              @id @default(cuid())
-  organizationId    String
-  plan              SubscriptionPlan
+  id                   String             @id @default(cuid())
+  organizationId       String
+  plan                 SubscriptionPlan
   status            SubscriptionStatus  @default(ACTIVE)
-  currentPeriodStart DateTime
-  currentPeriodEnd   DateTime
-  cancelAtPeriodEnd Boolean             @default(false)
-  stripeCustomerId  String?
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean            @default(false)
+  stripeCustomerId     String?
   stripeSubscriptionId String?
-  stripePriceId     String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  stripePriceId        String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  organization         Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
 }
 
-// Team invitations
 model Invitation {
   id             String           @id @default(cuid())
   organizationId String
@@ -69,53 +63,48 @@ model Invitation {
   expiresAt      DateTime
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, email])
   @@map("invitations")
 }
 
-// Usage tracking for billing and limits
 model UsageMetric {
-  id             String      @id @default(cuid())
+  id             String       @id @default(cuid())
   organizationId String
-  metricType     String      // 'candidates', 'interviews', 'assessments', 'storage'
-  value          Int         @default(0)
-  period         String      // 'monthly', 'daily'
+  metricType     String
+  value          Int          @default(0)
+  period         String
   date           DateTime
-  createdAt      DateTime    @default(now())
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, metricType, period, date])
   @@map("usage_metrics")
 }
 
 model User {
-  id             String    @id @default(cuid())
-  organizationId String    // Multi-tenant support
+  id             String         @id @default(cuid())
+  organizationId String
   name           String?
-  email          String    @unique
+  email          String         @unique
   emailVerified  DateTime?
   image          String?
-  password       String?   // For credential-based authentication
+  password       String?
   role           UserRole  @default(CANDIDATE)
-  company        String?   // Company name for non-candidates
-  position       String?   // Job position
-  isActive       Boolean   @default(true)
+  company        String?
+  position       String?
+  isActive       Boolean        @default(true)
   lastLoginAt    DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  // Relations
-  organization  Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  accounts      Account[]
-  sessions      Session[]
-  interviews    Interview[]
-  candidates    Candidate[]
-  assessments   Assessment[]
-  uploadedFiles UploadedFile[]   @relation("UserUploads")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  accounts       Account[]
+  assessments    Assessment[]
+  candidates     Candidate[]
+  interviews     Interview[]
+  sessions       Session[]
+  uploadedFiles  UploadedFile[] @relation("UserUploads")
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("users")
 }
@@ -133,8 +122,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -160,116 +148,153 @@ model VerificationToken {
 }
 
 model Candidate {
-  id              String   @id @default(cuid())
-  userId          String?
-  organizationId  String
-  name            String
-  email           String   @unique
-  phone           String?
-  githubUsername  String?
-  githubUrl       String?
-  resume          String?
-  coverLetter     String?
-  position        String
-  experience      String
-  skills          String // JSON array as string
-  status          CandidateStatus @default(APPLIED)
-  createdBy       String?  // Track who created this candidate
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  user            User?         @relation(fields: [userId], references: [id])
-  organization    Organization  @relation(fields: [organizationId], references: [id])
-  interviews      Interview[]
-  assessments     Assessment[]
-  githubAnalysis  GitHubAnalysis[]
-  uploadedFiles   UploadedFile[] @relation("CandidateFiles")
+  id             String           @id @default(cuid())
+  userId         String?
+  organizationId String
+  name           String
+  email          String           @unique
+  phone          String?
+  githubUsername String?
+  githubUrl      String?
+  resume         String?
+  coverLetter    String?
+  position       String
+  experience     String
+  skills         String
+  status         CandidateStatus  @default(APPLIED)
+  createdBy      String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  assessments    Assessment[]
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  user           User?            @relation(fields: [userId], references: [id])
+  githubAnalysis GitHubAnalysis[]
+  interviews     Interview[]
+  uploadedFiles  UploadedFile[]   @relation("CandidateFiles")
 
   @@map("candidates")
 }
 
 model Interview {
-  id                String         @id @default(cuid())
-  title             String
-  description       String?
-  candidateId       String
-  interviewerId     String
-  organizationId    String
-  type              InterviewType
-  status            InterviewStatus @default(SCHEDULED)
-  scheduledAt       DateTime
-  startedAt         DateTime?
-  completedAt       DateTime?
-  duration          Int?           // Duration in minutes
-  aiPersonality     String         @default("professional")
-  techStack         String         // JSON array as string
-  difficultyLevel   String         @default("intermediate")
-  questions         String         // JSON serialized questions and responses
-  notes             String?
-  score             Float?
-  recommendation    String?
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-
-  // Relations
-  candidate         Candidate      @relation(fields: [candidateId], references: [id])
-  interviewer       User           @relation(fields: [interviewerId], references: [id])
-  organization      Organization   @relation(fields: [organizationId], references: [id])
-  assessments       Assessment[]
+  id              String          @id @default(cuid())
+  title           String
+  description     String?
+  candidateId     String
+  interviewerId   String
+  organizationId  String
+  type            InterviewType
+  status          InterviewStatus @default(SCHEDULED)
+  scheduledAt     DateTime
+  startedAt       DateTime?
+  completedAt     DateTime?
+  duration        Int?
+  aiPersonality   String          @default("professional")
+  techStack       String
+  difficultyLevel String          @default("intermediate")
+  questions       String
+  notes           String?
+  score           Float?
+  recommendation  String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  assessments     Assessment[]
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  interviewer     User            @relation(fields: [interviewerId], references: [id])
+  candidate       Candidate       @relation(fields: [candidateId], references: [id])
 
   @@map("interviews")
 }
 
 model Assessment {
-  id              String   @id @default(cuid())
-  interviewId     String
-  candidateId     String
-  assessorId      String
-  organizationId  String
-  technicalScore  Float
-  communicationScore Float
+  id                  String                   @id @default(cuid())
+  interviewId         String
+  candidateId         String
+  assessorId          String
+  organizationId      String
+  technicalScore      Float
+  communicationScore  Float
   problemSolvingScore Float
-  cultureScore    Float
-  overallScore    Float
-  feedback        String
-  recommendation  AssessmentRecommendation
-  strengths       String // JSON array as string
-  weaknesses      String // JSON array as string
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  interview       Interview     @relation(fields: [interviewId], references: [id])
-  candidate       Candidate     @relation(fields: [candidateId], references: [id])
-  assessor        User          @relation(fields: [assessorId], references: [id])
-  organization    Organization  @relation(fields: [organizationId], references: [id])
+  cultureScore        Float
+  overallScore        Float
+  feedback            String
+  recommendation      AssessmentRecommendation
+  strengths           String
+  weaknesses          String
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  organization        Organization             @relation(fields: [organizationId], references: [id])
+  assessor            User                     @relation(fields: [assessorId], references: [id])
+  candidate           Candidate                @relation(fields: [candidateId], references: [id])
+  interview           Interview                @relation(fields: [interviewId], references: [id])
 
   @@map("assessments")
 }
 
 model GitHubAnalysis {
-  id                  String   @id @default(cuid())
-  candidateId         String
-  organizationId      String
-  username            String
-  profileData         String   // JSON serialized GitHub profile
-  repositories        String   // JSON serialized repositories data
-  contributions       String   // JSON serialized contributions
-  languageStats       String   // JSON serialized language statistics
-  activityScore       Float
-  codeQualityScore    Float
-  collaborationScore  Float
-  consistencyScore    Float
-  overallScore        Float
-  insights            String   // JSON serialized insights
-  analyzedAt          DateTime @default(now())
-  
-  // Relations
-  candidate           Candidate     @relation(fields: [candidateId], references: [id])
-  organization        Organization  @relation(fields: [organizationId], references: [id])
+  id                 String       @id @default(cuid())
+  candidateId        String
+  organizationId     String
+  username           String
+  profileData        String
+  repositories       String
+  contributions      String
+  languageStats      String
+  activityScore      Float
+  codeQualityScore   Float
+  collaborationScore Float
+  consistencyScore   Float
+  overallScore       Float
+  insights           String
+  analyzedAt         DateTime     @default(now())
+  organization       Organization @relation(fields: [organizationId], references: [id])
+  candidate          Candidate    @relation(fields: [candidateId], references: [id])
 
   @@map("github_analysis")
+}
+
+model UploadedFile {
+  id             String       @id @default(cuid())
+  filename       String
+  originalName   String
+  filePath       String
+  fileSize       Int
+  mimeType       String
+  type           String
+  uploadedBy     String
+  candidateId    String?
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  candidate      Candidate?   @relation("CandidateFiles", fields: [candidateId], references: [id])
+  uploader       User         @relation("UserUploads", fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@map("uploaded_files")
+}
+
+model SecurityLog {
+  id        String   @id @default(cuid())
+  type      String
+  ip        String
+  userAgent String
+  path      String
+  userId    String?
+  details   String
+  timestamp DateTime @default(now())
+
+  @@map("security_logs")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  ip        String
+  userAgent String
+  details   String
+  timestamp DateTime @default(now())
+
+  @@map("audit_logs")
 }
 
 enum SubscriptionPlan {
@@ -331,51 +356,4 @@ enum AssessmentRecommendation {
   HIRE
   NO_HIRE
   STRONG_NO_HIRE
-}
-
-model UploadedFile {
-  id           String   @id @default(cuid())
-  filename     String   // Secure filename on disk
-  originalName String   // Original filename from user
-  filePath     String   // Full path to file on disk
-  fileSize     Int      // File size in bytes
-  mimeType     String   // MIME type of the file
-  type         String   // Type of upload: 'resume', 'document', 'avatar'
-  uploadedBy   String   // User ID who uploaded
-  candidateId  String?  // Associated candidate if applicable
-  organizationId String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Relations
-  uploader     User         @relation("UserUploads", fields: [uploadedBy], references: [id], onDelete: Cascade)
-  candidate    Candidate?   @relation("CandidateFiles", fields: [candidateId], references: [id], onDelete: SetNull)
-  organization Organization @relation(fields: [organizationId], references: [id])
-
-  @@map("uploaded_files")
-}
-
-model SecurityLog {
-  id        String   @id @default(cuid())
-  type      String   // 'rate_limit', 'auth_failure', 'suspicious_activity', 'access_denied'
-  ip        String   // Client IP address
-  userAgent String   // User agent string
-  path      String   // Request path
-  userId    String?  // User ID if available
-  details   String   // JSON serialized details
-  timestamp DateTime @default(now())
-
-  @@map("security_logs")
-}
-
-model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String?  // User ID if available
-  action    String   // Action performed
-  ip        String   // Client IP address
-  userAgent String   // User agent string
-  details   String   // JSON serialized details
-  timestamp DateTime @default(now())
-
-  @@map("audit_logs")
 }

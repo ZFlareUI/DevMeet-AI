@@ -1,15 +1,18 @@
 import { createMocks } from 'node-mocks-http'
 import { NextRequest } from 'next/server'
 import { GET, POST } from '@/app/api/candidates/route'
-import { prisma } from '@/lib/prisma'
 
-// Mock Prisma
+// Mock Prisma with jest functions
+const mockFindMany = jest.fn()
+const mockCreate = jest.fn()
+const mockCount = jest.fn()
+
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     candidate: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-      count: jest.fn(),
+      findMany: mockFindMany,
+      create: mockCreate,
+      count: mockCount,
     },
   },
 }))
@@ -23,7 +26,7 @@ jest.mock('next-auth', () => ({
   ),
 }))
 
-const mockPrisma = prisma as jest.Mocked<typeof prisma>
+
 
 describe('/api/candidates', () => {
   beforeEach(() => {
@@ -48,8 +51,8 @@ describe('/api/candidates', () => {
         },
       ]
 
-      mockPrisma.candidate.findMany.mockResolvedValue(mockCandidates)
-      mockPrisma.candidate.count.mockResolvedValue(1)
+      mockFindMany.mockResolvedValue(mockCandidates)
+      mockCount.mockResolvedValue(1)
 
       const { req } = createMocks({
         method: 'GET',
@@ -70,8 +73,8 @@ describe('/api/candidates', () => {
     })
 
     it('should handle search query parameters', async () => {
-      mockPrisma.candidate.findMany.mockResolvedValue([])
-      mockPrisma.candidate.count.mockResolvedValue(0)
+      mockFindMany.mockResolvedValue([])
+      mockCount.mockResolvedValue(0)
 
       const { req } = createMocks({
         method: 'GET',
@@ -84,7 +87,7 @@ describe('/api/candidates', () => {
 
       await GET(request)
 
-      expect(mockPrisma.candidate.findMany).toHaveBeenCalledWith(
+      expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
             OR: expect.arrayContaining([
@@ -98,8 +101,8 @@ describe('/api/candidates', () => {
     })
 
     it('should handle pagination parameters', async () => {
-      mockPrisma.candidate.findMany.mockResolvedValue([])
-      mockPrisma.candidate.count.mockResolvedValue(0)
+      mockFindMany.mockResolvedValue([])
+      mockCount.mockResolvedValue(0)
 
       const { req } = createMocks({
         method: 'GET',
@@ -112,7 +115,7 @@ describe('/api/candidates', () => {
 
       await GET(request)
 
-      expect(mockPrisma.candidate.findMany).toHaveBeenCalledWith(
+      expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
           skip: 5, // (page - 1) * limit = (2 - 1) * 5 = 5
           take: 5,
@@ -141,7 +144,7 @@ describe('/api/candidates', () => {
         updatedAt: new Date(),
       }
 
-      mockPrisma.candidate.create.mockResolvedValue(mockCreatedCandidate)
+      mockCreate.mockResolvedValue(mockCreatedCandidate)
 
       const { req } = createMocks({
         method: 'POST',
@@ -163,7 +166,7 @@ describe('/api/candidates', () => {
       expect(response.status).toBe(201)
       expect(data.name).toBe(candidateData.name)
       expect(data.email).toBe(candidateData.email)
-      expect(mockPrisma.candidate.create).toHaveBeenCalledWith({
+      expect(mockCreate).toHaveBeenCalledWith({
         data: candidateData,
       })
     })
@@ -203,7 +206,7 @@ describe('/api/candidates', () => {
         education: 'CS',
       }
 
-      mockPrisma.candidate.create.mockRejectedValue(new Error('Database error'))
+      mockCreate.mockRejectedValue(new Error('Database error'))
 
       const { req } = createMocks({
         method: 'POST',

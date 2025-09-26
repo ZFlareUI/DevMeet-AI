@@ -5,7 +5,6 @@ import { prisma } from '@/lib/prisma';
 import { canPerformAction } from '@/lib/usage-tracking';
 import { UserRole, InvitationStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
-import { sendEmail } from '@/lib/email'; // You'll need to implement this
 
 export async function GET(req: NextRequest) {
   try {
