@@ -282,7 +282,7 @@ export default function AddCandidatePage() {
                 />
                 {errors.githubUrl && <p className="mt-1 text-sm text-red-600">{errors.githubUrl}</p>}
                 <p className="mt-1 text-sm text-gray-500">
-                  We'll analyze their GitHub profile to generate a technical score
+                  We&apos;ll analyze their GitHub profile to generate a technical score
                 </p>
               </div>
 
@@ -343,7 +343,7 @@ export default function AddCandidatePage() {
               <div>
                 <h3 className="text-sm font-medium text-gray-900">About GitHub Analysis</h3>
                 <p className="mt-1 text-sm text-gray-600">
-                  When you provide a GitHub URL, our AI will analyze the candidate's repositories, 
+                  When you provide a GitHub URL, our AI will analyze the candidate&apos;s repositories, 
                   commits, languages used, and coding patterns to generate a technical score. 
                   This helps you quickly assess their technical capabilities.
                 </p>

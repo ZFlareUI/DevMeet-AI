@@ -29,7 +29,7 @@ export default function TermsOfServicePage() {
             <h2 className="text-2xl font-semibold text-white mb-4">1. Acceptance of Terms</h2>
             <div className="text-white/80 space-y-4">
               <p>
-                By accessing and using DevMeet AI ("the Service"), you accept and agree to be bound by the terms 
+                By accessing and using DevMeet AI (&quot;the Service&quot;), you accept and agree to be bound by the terms 
                 and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
               </p>
             </div>

@@ -3,89 +3,93 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { GitHubAnalyzer } from '@/lib/github-analyzer'
-import { candidateSchema, candidateQuerySchema, validateInput, createErrorResponse, createSuccessResponse } from '@/lib/validation'
-import { CandidateStatus } from '@prisma/client'
-import { Prisma } from '@prisma/client'
+import { 
+  candidateSchema, 
+  candidateQuerySchema,
+  type CandidateInput,
+  type PaginationInput
+} from '@/lib/validation'
+import { 
+  createSuccessResponse, 
+  createErrorResponse, 
+  createValidationErrorResponse, 
+  createUnauthorizedResponse,
+  createForbiddenResponse,
+  createServerErrorResponse
+} from '@/lib/api-response'
+import { validateRequest, validateQueryParams } from '@/lib/validation-utils'
+import { logger } from '@/lib/logger'
+import { getEnvVar } from '@/lib/env'
+import { randomUUID } from 'crypto'
+
+// Define CandidateStatus enum if not already defined in your schema
+export enum CandidateStatus {
+  APPLIED = 'APPLIED',
+  SCREENING = 'SCREENING',
+  INTERVIEWING = 'INTERVIEWING',
+  OFFERED = 'OFFERED',
+  HIRED = 'HIRED',
+  REJECTED = 'REJECTED',
+  ARCHIVED = 'ARCHIVED'
+}
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now()
+  const requestId = crypto.randomUUID()
+  
   try {
+    // Validate authentication
     const session = await getServerSession(authOptions)
     if (!session) {
+      logger.warn('Unauthorized access attempt to candidates endpoint', { requestId })
       return createErrorResponse('Unauthorized', 401)
     }
 
-    // Only admins, recruiters, and interviewers can view candidates
+    // Check user role
     if (!['ADMIN', 'RECRUITER', 'INTERVIEWER'].includes(session.user.role)) {
+      logger.warn('Forbidden access attempt to candidates endpoint', { 
+        requestId, 
+        userId: session.user.id, 
+        role: session.user.role 
+      })
       return createErrorResponse('Forbidden', 403)
     }
 
-    const { searchParams } = new URL(request.url)
-    const queryParams: Record<string, string | number | undefined> = {}
+    // Validate query parameters
+    const url = new URL(request.url)
+    const queryValidation = validateQueryParams<PaginationInput & { search?: string; status?: string; experience?: string }>(
+      url,
+      candidateQuerySchema
+    )
+
+    if (!queryValidation.success) {
+      return queryValidation.response
+    }
+
+    const { page, limit, sortBy = 'createdAt', sortOrder = 'desc', search, status, experience } = queryValidation.data
     
-    // Extract query parameters
-    queryParams.page = parseInt(searchParams.get('page') || '1')
-    queryParams.limit = parseInt(searchParams.get('limit') || '10')
-    queryParams.sortBy = searchParams.get('sortBy') || undefined
-    queryParams.sortOrder = searchParams.get('sortOrder') || 'desc'
-    queryParams.search = searchParams.get('search') || undefined
-    queryParams.status = searchParams.get('status') || undefined
-    queryParams.position = searchParams.get('position') || undefined
-    queryParams.experience = searchParams.get('experience') || undefined
-
-    const validation = validateInput(candidateQuerySchema, queryParams)
-    if (!validation.success) {
-      return createErrorResponse(`Invalid query parameters: ${validation.errors?.join(', ') || 'Unknown validation error'}`)
-    }
-
-    const data = validation.data
-    if (!data) {
-      return createErrorResponse('Validation data is missing')
-    }
-
-    const { page, limit, sortBy, sortOrder, search, status, experience } = data
-    
-    // Get position from original query params since it's not in the validation schema
-    const position = queryParams.position as string | undefined
-
-    // Build where clause
-    const where: Prisma.CandidateWhereInput = {}
-    
-    if (search) {
-      where.OR = [
-        { name: { contains: search } },
-        { email: { contains: search } },
-        { position: { contains: search } }
-      ]
-    }
-
-    if (status) {
-      where.status = status
-    }
-
-    if (position) {
-      where.position = { contains: position }
-    }
-
-    if (experience) {
-      where.experience = { contains: experience }
+    // Build the where clause with type safety
+    const where: any = {
+      organizationId: session.user.organizationId,
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          { position: { contains: search, mode: 'insensitive' } }
+        ]
+      }),
+      ...(status && { status }),
+      ...(experience && { experience })
     }
 
     // Calculate pagination
     const skip = (page - 1) * limit
 
-    // Build orderBy
-    const orderBy: Prisma.CandidateOrderByWithRelationInput = {}
-    if (sortBy && ['createdAt', 'name', 'position', 'status'].includes(sortBy)) {
-      orderBy[sortBy as keyof Prisma.CandidateOrderByWithRelationInput] = sortOrder
-    } else {
-      orderBy.createdAt = sortOrder
-    }
-
-    // Fetch candidates with pagination
+    // Execute queries in parallel
     const [candidates, total] = await Promise.all([
       prisma.candidate.findMany({
         where,
-        orderBy,
+        orderBy: { [sortBy]: sortOrder },
         skip,
         take: limit,
         include: {
@@ -117,7 +121,21 @@ export async function GET(request: NextRequest) {
     ])
 
     const totalPages = Math.ceil(total / limit)
+    const hasNext = page < totalPages
+    const hasPrev = page > 1
 
+    // Log successful request
+    logger.info('Candidates retrieved successfully', {
+      requestId,
+      userId: session.user.id,
+      count: candidates.length,
+      total,
+      page,
+      limit,
+      duration: Date.now() - startTime
+    })
+
+    // Return paginated response
     return createSuccessResponse({
       candidates,
       pagination: {
@@ -125,114 +143,138 @@ export async function GET(request: NextRequest) {
         limit,
         total,
         totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1
+        hasNext,
+        hasPrev
       }
     })
   } catch (error) {
-    console.error('Error fetching candidates:', error)
-    return createErrorResponse('Internal server error', 500)
+    // Log the error
+    logger.error('Error fetching candidates', {
+      requestId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      duration: Date.now() - startTime
+    })
+    
+    // Return appropriate error response
+    return createServerErrorResponse(error instanceof Error ? error : new Error('Failed to fetch candidates'))
   }
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  const requestId = crypto.randomUUID()
+  
   try {
+    // Validate authentication and authorization
     const session = await getServerSession(authOptions)
     if (!session) {
+      logger.warn('Unauthorized attempt to create candidate', { requestId })
       return createErrorResponse('Unauthorized', 401)
     }
 
-    // Only admins and recruiters can create candidates
+    // Check user role
     if (!['ADMIN', 'RECRUITER'].includes(session.user.role)) {
+      logger.warn('Forbidden attempt to create candidate', { 
+        requestId, 
+        userId: session.user.id, 
+        role: session.user.role 
+      })
       return createErrorResponse('Forbidden', 403)
     }
 
-    const body = await request.json()
-    const validation = validateInput(candidateSchema, body)
-    
+    // Validate request body
+    const validation = await validateRequest<CandidateInput>(request, candidateSchema)
     if (!validation.success) {
-      return createErrorResponse(`Validation failed: ${validation.errors?.join(', ') || 'Unknown validation error'}`)
+      return validation.response
     }
 
     const data = validation.data
-    if (!data) {
-      return createErrorResponse('Validation data is missing')
-    }
+    const { githubUrl, ...candidateData } = data
 
-    // Check if candidate with email already exists
-    const existingCandidate = await prisma.candidate.findUnique({
-      where: { email: data.email }
+    // Check for existing candidate with the same email in the same organization
+    const existingCandidate = await prisma.candidate.findFirst({
+      where: { 
+        email: data.email,
+        organizationId: session.user.organizationId
+      }
     })
 
     if (existingCandidate) {
-      return createErrorResponse('Candidate with this email already exists', 409)
-    }
-
-    // Validate GitHub URL if provided
-    if (data.githubUrl && data.githubUrl.trim()) {
-      try {
-        new URL(data.githubUrl)
-        if (!data.githubUrl.includes('github.com')) {
-          return createErrorResponse('GitHub URL must be a valid GitHub profile URL')
-        }
-      } catch {
-        return createErrorResponse('Invalid GitHub URL format')
-      }
+      logger.warn('Attempt to create duplicate candidate', {
+        requestId,
+        email: data.email,
+        organizationId: session.user.organizationId
+      })
+      return createErrorResponse(
+        'A candidate with this email already exists in your organization',
+        409,
+        'DUPLICATE_CANDIDATE'
+      )
     }
 
     // Create candidate
     const candidate = await prisma.candidate.create({
       data: {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        position: data.position,
-        experience: data.experience,
+        ...candidateData,
         skills: JSON.stringify(data.skills),
-        githubUrl: data.githubUrl,
-        resume: data.resume,
         organizationId: session.user.organizationId,
-        status: CandidateStatus.APPLIED
+        status: CandidateStatus.APPLIED,
+        createdBy: session.user.id
       }
     })
 
-    // Analyze GitHub profile if URL provided
-    if (data.githubUrl && data.githubUrl.includes('github.com')) {
+    // Process GitHub profile analysis in the background if URL is provided
+    if (githubUrl && githubUrl.trim()) {
       try {
+        // Process GitHub analysis in the background without awaiting
+        const githubAnalyzer = new GitHubAnalyzer()
         // Extract username from GitHub URL
-        const githubUsername = data.githubUrl.split('/').pop()
-        if (githubUsername) {
-          const analyzer = new GitHubAnalyzer()
-          const analysis = await analyzer.analyzeCandidate(githubUsername)
-          
-          await prisma.gitHubAnalysis.create({
-            data: {
-              candidateId: candidate.id,
-              organizationId: session.user.organizationId,
-              username: githubUsername,
-            profileData: JSON.stringify(analysis.profile),
-            repositories: JSON.stringify(analysis.repositories),
-            contributions: JSON.stringify(analysis.activityMetrics),
-            languageStats: JSON.stringify(analysis.languageStats),
-            activityScore: analysis.overallScores.activity,
-            codeQualityScore: analysis.overallScores.codeQuality,
-            collaborationScore: analysis.overallScores.collaboration,
-            consistencyScore: analysis.overallScores.consistency,
-            overallScore: analysis.overallScores.overall,
-            insights: JSON.stringify(analysis.insights)
-          }
+        const githubUsername = githubUrl.split('/').pop() || ''
+        githubAnalyzer.analyzeCandidate(githubUsername)
+          .then(analysis => {
+            // Save analysis to database
+            return prisma.gitHubAnalysis.create({
+              data: {
+                candidateId: candidate.id,
+                organizationId: session.user.organizationId,
+                username: analysis.profile.login,
+                profileData: JSON.stringify(analysis.profile),
+                repositories: JSON.stringify(analysis.repositories),
+                contributions: JSON.stringify(analysis.collaborationMetrics),
+                languageStats: JSON.stringify(analysis.languageStats),
+                activityScore: analysis.overallScores.activity,
+                codeQualityScore: analysis.overallScores.codeQuality,
+                collaborationScore: analysis.overallScores.collaboration,
+                consistencyScore: analysis.overallScores.consistency,
+                overallScore: analysis.overallScores.overall,
+                insights: JSON.stringify({
+                  insights: analysis.insights,
+                  recommendations: analysis.recommendations
+                })
+              }
+            })
+          })
+          .catch(error => {
+          logger.error('Error in background GitHub analysis', {
+            requestId,
+            candidateId: candidate.id,
+            githubUrl,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          })
         })
-
-        console.log(`GitHub analysis completed for candidate: ${candidate.id}`)
-        }
       } catch (error) {
-        console.error('Error analyzing GitHub profile:', error)
-        // Continue without GitHub analysis if it fails
+        logger.error('Error starting GitHub analysis', {
+          requestId,
+          candidateId: candidate.id,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        })
+        // Continue without GitHub analysis if it fails to start
       }
     }
 
-    // Return candidate with fresh data
-    const candidateWithAnalysis = await prisma.candidate.findUnique({
+    // Return the created candidate
+    const candidateWithDetails = await prisma.candidate.findUnique({
       where: { id: candidate.id },
       include: {
         githubAnalysis: {
@@ -248,8 +290,12 @@ export async function POST(request: NextRequest) {
         }
       }
     })
-
-    return createSuccessResponse(candidateWithAnalysis, 'Candidate created successfully')
+    
+    return createSuccessResponse({
+      data: candidateWithDetails,
+      message: 'Candidate created successfully',
+      status: 201
+    })
   } catch (error) {
     console.error('Error creating candidate:', error)
     if (error instanceof Error && error.message.includes('Unique constraint')) {
