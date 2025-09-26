@@ -5,7 +5,6 @@
 DevMeet-AI is a comprehensive, production-ready interview management platform that leverages artificial intelligence to streamline the hiring process. Built with modern web technologies and designed for scale, it provides end-to-end solutions for candidate management, interview scheduling, AI-powered assessments, and detailed analytics.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Next.js](https://img.shields.io/badge/Next.js-15.0-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.0-darkgreen)](https://www.prisma.io/)
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-black)](https://vercel.com)
