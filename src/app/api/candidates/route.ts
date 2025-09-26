@@ -190,6 +190,7 @@ export async function POST(request: NextRequest) {
         skills: JSON.stringify(data.skills),
         githubUrl: data.githubUrl,
         resume: data.resume,
+        organizationId: session.user.organizationId,
         status: CandidateStatus.APPLIED
       }
     })
@@ -206,6 +207,7 @@ export async function POST(request: NextRequest) {
           await prisma.gitHubAnalysis.create({
             data: {
               candidateId: candidate.id,
+              organizationId: session.user.organizationId,
               username: githubUsername,
             profileData: JSON.stringify(analysis.profile),
             repositories: JSON.stringify(analysis.repositories),

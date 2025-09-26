@@ -43,6 +43,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Create organization for new user (or assign to existing if admin invites)
+    const orgName = company || `${name}'s Organization`
+    const orgSlug = orgName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    
+    const organization = await prisma.organization.create({
+      data: {
+        name: orgName,
+        slug: `${orgSlug}-${Date.now()}`, // Ensure uniqueness
+      }
+    })
+
     // Create user
     const user = await prisma.user.create({
       data: {
@@ -50,6 +61,7 @@ export async function POST(request: NextRequest) {
         email: email.toLowerCase().trim(),
         password: hashedPassword,
         role: role as UserRole,
+        organizationId: organization.id,
         // Add additional fields if provided
         ...(company && { company: company.trim() }),
         ...(position && { position: position.trim() }),
