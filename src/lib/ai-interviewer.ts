@@ -25,6 +25,20 @@ export interface EvaluationRubric {
   system_thinking?: { weight: number; description: string }
 }
 
+export interface RawQuestion {
+  id?: string
+  question: string
+  type?: 'technical' | 'behavioral' | 'situational' | 'coding' | 'system_design'
+  difficulty?: 'easy' | 'medium' | 'hard'
+  category?: string
+  expectedAnswer?: string
+  keyPoints?: string[]
+  followUpQuestions?: string[]
+  codeSnippet?: string
+  timeLimit?: number
+  rubric?: EvaluationRubric
+}
+
 export interface InterviewResponse {
   questionId: string
   response: string
@@ -153,7 +167,7 @@ export class AIInterviewer {
       const text = response.text()
       
       const parsed = JSON.parse(text)
-      const questions = this.processGeneratedQuestions(parsed.questions, candidateProfile.skills)
+      const questions = this.processGeneratedQuestions(parsed.questions)
       
       Logger.info('Successfully generated questions', { count: questions.length })
       return questions
@@ -225,22 +239,24 @@ export class AIInterviewer {
   }
 
   private processGeneratedQuestions(
-    questions: unknown[],
-    skills: string[]
+    questions: unknown[]
   ): InterviewQuestion[] {
-    return questions.map((q: unknown, index: number) => ({
-      id: (q as any).id || `q_${Date.now()}_${index}`,
-      question: (q as any).question,
-      type: (q as any).type || 'technical',
-      difficulty: (q as any).difficulty || 'medium',
-      category: (q as any).category || 'general',
-      expectedAnswer: (q as any).expectedAnswer,
-      keyPoints: (q as any).keyPoints || [],
-      followUpQuestions: (q as any).followUpQuestions || [],
-      codeSnippet: (q as any).codeSnippet,
-      timeLimit: (q as any).timeLimit || 10,
-      rubric: (q as any).rubric || this.getDefaultRubric((q as any).type)
-    }))
+    return questions.map((q: unknown, index: number) => {
+      const question = q as RawQuestion
+      return {
+        id: question.id || `q_${Date.now()}_${index}`,
+        question: question.question,
+        type: question.type || 'technical',
+        difficulty: question.difficulty || 'medium',
+        category: question.category || 'general',
+        expectedAnswer: question.expectedAnswer,
+        keyPoints: question.keyPoints || [],
+        followUpQuestions: question.followUpQuestions || [],
+        codeSnippet: question.codeSnippet,
+        timeLimit: question.timeLimit || 10,
+        rubric: question.rubric || this.getDefaultRubric(question.type || 'technical')
+      }
+    })
   }
 
   private getDefaultRubric(type: string): EvaluationRubric {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { ZodError } from 'zod'
+import { ZodError, ZodIssue } from 'zod'
 import { Prisma } from '@prisma/client'
 
 // Error types for better categorization
@@ -17,7 +17,7 @@ export enum ErrorType {
 export interface ApiError {
   type: ErrorType
   message: string
-  details?: any
+  details?: unknown
   statusCode: number
   timestamp: string
   requestId?: string
@@ -26,14 +26,14 @@ export interface ApiError {
 export class AppError extends Error {
   public readonly type: ErrorType
   public readonly statusCode: number
-  public readonly details?: any
+  public readonly details?: unknown
   public readonly isOperational: boolean
 
   constructor(
     type: ErrorType,
     message: string,
     statusCode: number,
-    details?: any,
+    details?: unknown,
     isOperational = true
   ) {
     super(message)
@@ -48,21 +48,21 @@ export class AppError extends Error {
 
 // Logger utility
 export class Logger {
-  private static formatMessage(level: string, message: string, meta?: any): string {
+  private static formatMessage(level: string, message: string, meta?: Record<string, unknown>): string {
     const timestamp = new Date().toISOString()
     const metaStr = meta ? JSON.stringify(meta, null, 2) : ''
     return `[${timestamp}] ${level.toUpperCase()}: ${message} ${metaStr}`
   }
 
-  static info(message: string, meta?: any): void {
+  static info(message: string, meta?: Record<string, unknown>): void {
     console.log(this.formatMessage('info', message, meta))
   }
 
-  static warn(message: string, meta?: any): void {
+  static warn(message: string, meta?: Record<string, unknown>): void {
     console.warn(this.formatMessage('warn', message, meta))
   }
 
-  static error(message: string, error?: any, meta?: any): void {
+  static error(message: string, error?: unknown, meta?: Record<string, unknown>): void {
     const errorDetails = error instanceof Error ? {
       name: error.name,
       message: error.message,
@@ -73,7 +73,7 @@ export class Logger {
     console.error(this.formatMessage('error', message, errorDetails))
   }
 
-  static debug(message: string, meta?: any): void {
+  static debug(message: string, meta?: Record<string, unknown>): void {
     if (process.env.NODE_ENV === 'development') {
       console.debug(this.formatMessage('debug', message, meta))
     }
@@ -99,7 +99,7 @@ export function handleApiError(error: unknown, requestId?: string): NextResponse
     apiError = {
       type: ErrorType.VALIDATION_ERROR,
       message: 'Validation failed',
-      details: error.issues.map((err: any) => ({
+      details: error.issues.map((err: ZodIssue) => ({
         field: err.path.join('.'),
         message: err.message,
         code: err.code
@@ -184,9 +184,9 @@ export function handleApiError(error: unknown, requestId?: string): NextResponse
 
 // Async error wrapper for API routes
 export function asyncHandler(
-  handler: (req: Request, context?: any) => Promise<NextResponse>
+  handler: (req: Request, context?: Record<string, unknown>) => Promise<NextResponse>
 ) {
-  return async (req: Request, context?: any): Promise<NextResponse> => {
+  return async (req: Request, context?: Record<string, unknown>): Promise<NextResponse> => {
     try {
       return await handler(req, context)
     } catch (error) {
@@ -216,7 +216,7 @@ export const ApiErrors = {
     403
   ),
 
-  validation: (message: string, details?: any) => new AppError(
+  validation: (message: string, details?: unknown) => new AppError(
     ErrorType.VALIDATION_ERROR,
     message,
     400,
@@ -243,7 +243,7 @@ export const ApiErrors = {
 }
 
 // Success response helper
-export function successResponse(data: any, message?: string, statusCode = 200): NextResponse {
+export function successResponse(data: unknown, message?: string, statusCode = 200): NextResponse {
   return NextResponse.json(
     {
       success: true,
@@ -256,8 +256,8 @@ export function successResponse(data: any, message?: string, statusCode = 200): 
 }
 
 // Pagination response helper
-export function paginatedResponse(
-  data: any[],
+export function paginatedResponse<T>(
+  data: T[],
   total: number,
   page: number,
   limit: number,

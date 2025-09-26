@@ -41,6 +41,14 @@ export interface InterviewResponse {
   }
 }
 
+export interface DetailedScores {
+  technical_accuracy: number
+  problem_solving: number
+  communication: number
+  code_quality?: number
+  system_thinking?: number
+}
+
 export interface InterviewSession {
   id: string
   candidateId: string
@@ -56,13 +64,43 @@ export interface InterviewSession {
   recommendation?: string
 }
 
+export interface GitHubProfile {
+  username?: string
+  repositories?: Array<{
+    name: string
+    description?: string
+    language?: string
+    stars?: number
+    forks?: number
+  }>
+  contributions?: {
+    total: number
+    lastYear: number
+  }
+  skills?: string[]
+}
+
+export interface RawQuestion {
+  id?: string
+  question: string
+  type?: 'technical' | 'behavioral' | 'situational' | 'coding' | 'system_design'
+  difficulty?: 'easy' | 'medium' | 'hard'
+  category?: string
+  expectedAnswer?: string
+  keyPoints?: string[]
+  followUpQuestions?: string[]
+  codeSnippet?: string
+  timeLimit?: number
+  rubric?: EvaluationRubric
+}
+
 export interface CandidateProfile {
   name: string
   experience: string
   skills: string[]
   position: string
   resume?: string
-  githubProfile?: any
+  githubProfile?: GitHubProfile
 }
 
 export class AIInterviewer {
@@ -95,7 +133,7 @@ export class AIInterviewer {
       const text = response.text()
       
       const parsed = JSON.parse(text)
-      const questions = this.processGeneratedQuestions(parsed.questions, candidateProfile.skills)
+      const questions = this.processGeneratedQuestions(parsed.questions)
       
       Logger.info('Successfully generated questions', { count: questions.length })
       return questions
@@ -167,22 +205,24 @@ export class AIInterviewer {
   }
 
   private processGeneratedQuestions(
-    questions: any[],
-    skills: string[]
+    questions: unknown[]
   ): InterviewQuestion[] {
-    return questions.map((q: any, index: number) => ({
-      id: q.id || `q_${Date.now()}_${index}`,
-      question: q.question,
-      type: q.type || 'technical',
-      difficulty: q.difficulty || 'medium',
-      category: q.category || 'general',
-      expectedAnswer: q.expectedAnswer,
-      keyPoints: q.keyPoints || [],
-      followUpQuestions: q.followUpQuestions || [],
-      codeSnippet: q.codeSnippet,
-      timeLimit: q.timeLimit || 10,
-      rubric: q.rubric || this.getDefaultRubric(q.type)
-    }))
+    return questions.map((q: unknown, index: number) => {
+      const question = q as RawQuestion
+      return {
+        id: question.id || `q_${Date.now()}_${index}`,
+        question: question.question,
+        type: question.type || 'technical',
+        difficulty: question.difficulty || 'medium',
+        category: question.category || 'general',
+        expectedAnswer: question.expectedAnswer,
+        keyPoints: question.keyPoints || [],
+        followUpQuestions: question.followUpQuestions || [],
+        codeSnippet: question.codeSnippet,
+        timeLimit: question.timeLimit || 10,
+        rubric: question.rubric || this.getDefaultRubric(question.type || 'technical')
+      }
+    })
   }
 
   private getDefaultRubric(type: string): EvaluationRubric {
@@ -222,7 +262,7 @@ export class AIInterviewer {
   ): Promise<{ 
     score: number
     feedback: string
-    detailedScores: any
+    detailedScores: DetailedScores
     followUp?: string 
   }> {
     const prompt = `
@@ -315,12 +355,12 @@ export class AIInterviewer {
     return Math.min(Math.max(score, 1), 10)
   }
 
-  private getBasicDetailedScores(overallScore: number, rubric: EvaluationRubric): any {
-    const scores: any = {}
+  private getBasicDetailedScores(overallScore: number, rubric: EvaluationRubric): DetailedScores {
+    const scores: Partial<DetailedScores> = {}
     const variance = 0.5
     
     Object.keys(rubric).forEach(criterion => {
-      scores[criterion] = Math.min(
+      (scores as Record<string, number>)[criterion] = Math.min(
         Math.max(
           overallScore + (Math.random() - 0.5) * variance * 2,
           1
@@ -329,7 +369,7 @@ export class AIInterviewer {
       )
     })
     
-    return scores
+    return scores as DetailedScores
   }
 
   async generateFollowUpQuestion(
