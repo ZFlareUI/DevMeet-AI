@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "build:prod": "next build --turbopack --no-lint",
+    "build": "prisma generate && next build --experimental-build-mode=compile",
+    "build:vercel": "prisma generate && next build --experimental-build-mode=compile",
+    "build:prod": "prisma generate && next build --experimental-build-mode=compile --no-lint",
+    "postbuild": "prisma generate",
     "start": "next start",
     "start:prod": "NODE_ENV=production next start",
     "lint": "eslint",

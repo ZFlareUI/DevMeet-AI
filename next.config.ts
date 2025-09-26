@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Production optimizations
-  output: 'standalone',
+  // Production optimizations - removed standalone for Vercel compatibility
   experimental: {
     serverMinification: true,
     serverSourceMaps: false,
