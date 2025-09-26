@@ -70,6 +70,8 @@ jobs:
 
     - name: Generate Prisma client
       run: npx prisma generate
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/devmeet_test?schema=public
 
     - name: Run database migrations
       run: npx prisma migrate deploy
