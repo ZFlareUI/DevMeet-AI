@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SessionProvider } from 'next-auth/react'
+import { Session } from 'next-auth'
 import CandidateForm from '@/app/candidates/new/page'
 
 // Mock next/navigation

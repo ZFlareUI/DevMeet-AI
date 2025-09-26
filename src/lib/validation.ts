@@ -151,7 +151,13 @@ export interface Interview {
   updatedAt: Date
 }
 
-export function formatValidationErrors(error: z.ZodError) {
+export type ValidationError = {
+  path: string
+  message: string
+  code: string
+}
+
+export function formatValidationErrors(error: z.ZodError): ValidationError[] {
   return error.issues.map((issue) => ({
     path: issue.path.join('.'),
     message: issue.message,
@@ -160,7 +166,7 @@ export function formatValidationErrors(error: z.ZodError) {
 }
 
 export function createValidationMiddleware<T>(schema: z.ZodSchema<T>) {
-  return (data: unknown): { success: true; data: T } | { success: false; errors: any[] } => {
+  return (data: unknown): { success: true; data: T } | { success: false; errors: ValidationError[] } => {
     try {
       const validatedData = schema.parse(data)
       return { success: true, data: validatedData }
@@ -168,7 +174,7 @@ export function createValidationMiddleware<T>(schema: z.ZodSchema<T>) {
       if (error instanceof z.ZodError) {
         return { success: false, errors: formatValidationErrors(error) }
       }
-      return { success: false, errors: [{ message: 'Validation failed', code: 'unknown' }] }
+      return { success: false, errors: [{ path: 'unknown', message: 'Validation failed', code: 'unknown' }] }
     }
   }
 }
@@ -203,7 +209,7 @@ export const candidateQuerySchema = z.object({
 })
 
 // Helper functions for API responses
-export const createErrorResponse = (message: string, status: number = 400, details?: any) => {
+export const createErrorResponse = (message: string, status: number = 400, details?: unknown) => {
   return NextResponse.json({
     success: false,
     error: message,
@@ -211,7 +217,7 @@ export const createErrorResponse = (message: string, status: number = 400, detai
   }, { status })
 }
 
-export const createSuccessResponse = (data: any, message?: string, status: number = 200) => {
+export const createSuccessResponse = (data: unknown, message?: string, status: number = 200) => {
   return NextResponse.json({
     success: true,
     data,
