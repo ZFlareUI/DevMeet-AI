@@ -5,7 +5,7 @@ export interface AnalyticsEvent {
   userId?: string
   sessionId: string
   event: string
-  properties: Record<string, any>
+  properties: Record<string, unknown>
   timestamp: Date
   userAgent?: string
   ip?: string
@@ -24,7 +24,7 @@ export interface PerformanceMetric {
 
 export interface ErrorEvent {
   error: Error | string
-  context: Record<string, any>
+  context: Record<string, unknown>
   userId?: string
   sessionId?: string
   timestamp: Date
@@ -39,7 +39,7 @@ const errorEvents: ErrorEvent[] = []
 
 // Analytics class
 export class Analytics {
-  static track(event: string, properties: Record<string, any> = {}, userId?: string) {
+  static track(event: string, properties: Record<string, unknown> = {}, userId?: string) {
     const analyticsEvent: AnalyticsEvent = {
       userId,
       sessionId: this.generateSessionId(),
@@ -60,7 +60,7 @@ export class Analytics {
     this.track('page_view', { path }, userId)
   }
 
-  static trackUserAction(action: string, details: Record<string, any>, userId?: string) {
+  static trackUserAction(action: string, details: Record<string, unknown>, userId?: string) {
     this.track('user_action', { action, ...details }, userId)
   }
 
@@ -185,7 +185,7 @@ export class PerformanceMonitor {
 export class ErrorLogger {
   static logError(
     error: Error | string, 
-    context: Record<string, any> = {},
+    context: Record<string, unknown> = {},
     userId?: string,
     severity: 'low' | 'medium' | 'high' | 'critical' = 'medium',
     sessionId?: string

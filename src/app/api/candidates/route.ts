@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { GitHubAnalyzer } from '@/lib/github-analyzer'
 import { candidateSchema, candidateQuerySchema, validateInput, createErrorResponse, createSuccessResponse } from '@/lib/validation'
 import { CandidateStatus } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const queryParams: any = {}
+    const queryParams: Record<string, string | number | undefined> = {}
     
     // Extract query parameters
     queryParams.page = parseInt(searchParams.get('page') || '1')
@@ -44,16 +45,16 @@ export async function GET(request: NextRequest) {
     const { page, limit, sortBy, sortOrder, search, status, experience } = data
     
     // Get position from original query params since it's not in the validation schema
-    const position = queryParams.position
+    const position = queryParams.position as string | undefined
 
     // Build where clause
-    const where: any = {}
+    const where: Prisma.CandidateWhereInput = {}
     
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-        { position: { contains: search, mode: 'insensitive' } }
+        { name: { contains: search } },
+        { email: { contains: search } },
+        { position: { contains: search } }
       ]
     }
 
@@ -62,20 +63,20 @@ export async function GET(request: NextRequest) {
     }
 
     if (position) {
-      where.position = { contains: position, mode: 'insensitive' }
+      where.position = { contains: position }
     }
 
     if (experience) {
-      where.experience = { contains: experience, mode: 'insensitive' }
+      where.experience = { contains: experience }
     }
 
     // Calculate pagination
     const skip = (page - 1) * limit
 
     // Build orderBy
-    const orderBy: any = {}
+    const orderBy: Prisma.CandidateOrderByWithRelationInput = {}
     if (sortBy && ['createdAt', 'name', 'position', 'status'].includes(sortBy)) {
-      orderBy[sortBy] = sortOrder
+      orderBy[sortBy as keyof Prisma.CandidateOrderByWithRelationInput] = sortOrder
     } else {
       orderBy.createdAt = sortOrder
     }
@@ -190,7 +191,7 @@ export async function POST(request: NextRequest) {
         skills: JSON.stringify(data.skills),
         githubUrl: data.githubUrl,
         resume: data.resume,
-        organizationId: (session.user as any).organizationId,
+        organizationId: session.user.organizationId,
         status: CandidateStatus.APPLIED
       }
     })
@@ -207,7 +208,7 @@ export async function POST(request: NextRequest) {
           await prisma.gitHubAnalysis.create({
             data: {
               candidateId: candidate.id,
-              organizationId: (session.user as any).organizationId,
+              organizationId: session.user.organizationId,
               username: githubUsername,
             profileData: JSON.stringify(analysis.profile),
             repositories: JSON.stringify(analysis.repositories),

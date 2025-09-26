@@ -62,7 +62,7 @@ export interface CandidateProfile {
   skills: string[]
   position: string
   resume?: string
-  githubProfile?: any
+  githubProfile?: Record<string, unknown>
 }
 
 export class AIInterviewer {
@@ -225,21 +225,21 @@ export class AIInterviewer {
   }
 
   private processGeneratedQuestions(
-    questions: any[],
+    questions: unknown[],
     skills: string[]
   ): InterviewQuestion[] {
-    return questions.map((q: any, index: number) => ({
-      id: q.id || `q_${Date.now()}_${index}`,
-      question: q.question,
-      type: q.type || 'technical',
-      difficulty: q.difficulty || 'medium',
-      category: q.category || 'general',
-      expectedAnswer: q.expectedAnswer,
-      keyPoints: q.keyPoints || [],
-      followUpQuestions: q.followUpQuestions || [],
-      codeSnippet: q.codeSnippet,
-      timeLimit: q.timeLimit || 10,
-      rubric: q.rubric || this.getDefaultRubric(q.type)
+    return questions.map((q: unknown, index: number) => ({
+      id: (q as any).id || `q_${Date.now()}_${index}`,
+      question: (q as any).question,
+      type: (q as any).type || 'technical',
+      difficulty: (q as any).difficulty || 'medium',
+      category: (q as any).category || 'general',
+      expectedAnswer: (q as any).expectedAnswer,
+      keyPoints: (q as any).keyPoints || [],
+      followUpQuestions: (q as any).followUpQuestions || [],
+      codeSnippet: (q as any).codeSnippet,
+      timeLimit: (q as any).timeLimit || 10,
+      rubric: (q as any).rubric || this.getDefaultRubric((q as any).type)
     }))
   }
 
@@ -280,7 +280,7 @@ export class AIInterviewer {
   ): Promise<{ 
     score: number
     feedback: string
-    detailedScores: any
+    detailedScores: Record<string, number>
     followUp?: string 
   }> {
     const prompt = `
@@ -373,8 +373,8 @@ export class AIInterviewer {
     return Math.min(Math.max(score, 1), 10)
   }
 
-  private getBasicDetailedScores(overallScore: number, rubric: EvaluationRubric): any {
-    const scores: any = {}
+  private getBasicDetailedScores(overallScore: number, rubric: EvaluationRubric): Record<string, number> {
+    const scores: Record<string, number> = {}
     const variance = 0.5
     
     Object.keys(rubric).forEach(criterion => {

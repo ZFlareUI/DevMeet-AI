@@ -62,6 +62,11 @@ export interface GitHubAnalysis {
   recommendations: string[]
 }
 
+type ActivityMetrics = GitHubAnalysis['activityMetrics']
+type CodeQualityMetrics = GitHubAnalysis['codeQualityMetrics']
+type CollaborationMetrics = GitHubAnalysis['collaborationMetrics']
+type OverallScores = GitHubAnalysis['overallScores']
+
 export class GitHubAnalyzer {
   private octokit: Octokit
 
@@ -257,16 +262,10 @@ export class GitHubAnalyzer {
   }
 
   private calculateOverallScores(
-    activityMetrics: any,
-    codeQualityMetrics: any,
-    collaborationMetrics: any
-  ): {
-    activity: number
-    codeQuality: number
-    collaboration: number
-    consistency: number
-    overall: number
-  } {
+    activityMetrics: ActivityMetrics,
+    codeQualityMetrics: CodeQualityMetrics,
+    collaborationMetrics: CollaborationMetrics
+  ): OverallScores {
     const activity = Math.min(10, activityMetrics.consistencyScore)
     const codeQuality = (
       codeQualityMetrics.documentationScore * 0.4 +
@@ -290,7 +289,7 @@ export class GitHubAnalyzer {
     profile: GitHubProfile,
     repositories: Repository[],
     languageStats: Record<string, number>,
-    scores: any
+    scores: OverallScores
   ): string[] {
     const insights: string[] = []
 
@@ -328,7 +327,7 @@ export class GitHubAnalyzer {
     return insights
   }
 
-  private generateRecommendations(scores: any, insights: string[]): string[] {
+  private generateRecommendations(scores: OverallScores, insights: string[]): string[] {
     const recommendations: string[] = []
 
     if (scores.overall > 7) {

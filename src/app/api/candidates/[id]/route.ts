@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { candidateUpdateSchema, validateInput, createErrorResponse, createSuccessResponse } from '@/lib/validation'
 import { GitHubAnalyzer } from '@/lib/github-analyzer'
+import { Prisma } from '@prisma/client'
 
 export async function GET(
   request: NextRequest,
@@ -169,7 +170,7 @@ export async function PUT(
     }
 
     // Prepare update data
-    const updateData: any = {}
+    const updateData: Prisma.CandidateUpdateInput = {}
     
     if (data?.name) updateData.name = data.name
     if (data?.email) updateData.email = data.email
@@ -177,12 +178,8 @@ export async function PUT(
     if (data?.position) updateData.position = data.position
     if (data?.experience) updateData.experience = data.experience
     if (data?.skills) updateData.skills = JSON.stringify(data.skills)
-    if (data?.linkedinUrl !== undefined) updateData.linkedinUrl = data.linkedinUrl
     if (data?.githubUrl !== undefined) updateData.githubUrl = data.githubUrl
     if (data?.resume !== undefined) updateData.resume = data.resume
-    if (data?.expectedSalary !== undefined) updateData.expectedSalary = data.expectedSalary
-    if (data?.availability !== undefined) updateData.availability = data.availability
-    if (data?.notes !== undefined) updateData.notes = data.notes
 
     // Update candidate
     const updatedCandidate = await prisma.candidate.update({

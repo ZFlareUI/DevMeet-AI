@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { verifyStripeSignature } from '@/lib/stripe';
-import { SubscriptionStatus } from '@prisma/client';
+import { SubscriptionStatus, SubscriptionPlan } from '@prisma/client';
 import Stripe from 'stripe';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -78,12 +78,12 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   }
 
   const priceId = subscription.items.data[0]?.price.id;
-  let plan: any = 'FREE';
+  let plan: SubscriptionPlan = SubscriptionPlan.FREE;
   
   // Map Stripe price ID to plan
-  if (priceId === process.env.STRIPE_BASIC_PRICE_ID) plan = 'BASIC';
-  else if (priceId === process.env.STRIPE_PRO_PRICE_ID) plan = 'PRO';
-  else if (priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) plan = 'ENTERPRISE';
+  if (priceId === process.env.STRIPE_BASIC_PRICE_ID) plan = SubscriptionPlan.BASIC;
+  else if (priceId === process.env.STRIPE_PRO_PRICE_ID) plan = SubscriptionPlan.PRO;
+  else if (priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) plan = SubscriptionPlan.ENTERPRISE;
 
   const status = mapStripeStatus(subscription.status);
 

@@ -17,12 +17,18 @@ import { useToast } from '@/components/ui/toast';
 import { api } from '@/lib/api';
 import type { Candidate } from '@/lib/validation';
 
+// Extended candidate interface for display
+interface DisplayCandidate extends Candidate {
+  status: string;
+  githubScore?: number;
+}
+
 export default function CandidatesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { addToast } = useToast();
   
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [candidates, setCandidates] = useState<DisplayCandidate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -42,7 +48,7 @@ export default function CandidatesPage() {
     try {
       setIsLoading(true);
       
-      const queryParams: Record<string, any> = {};
+      const queryParams: Record<string, string | number | boolean> = {};
       if (searchQuery) queryParams.search = searchQuery;
       if (statusFilter !== 'all') queryParams.status = statusFilter;
       

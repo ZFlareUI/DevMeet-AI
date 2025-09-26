@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Repository, GitHubAnalysis } from '@/lib/github-analyzer'
 
 interface Candidate {
   id: string
@@ -36,8 +37,8 @@ interface Candidate {
     collaborationScore: number
     consistencyScore: number
     insights: string[]
-    profileData: any
-    repositories: any[]
+    profileData: Record<string, unknown>
+    repositories: Repository[]
     languageStats: Record<string, number>
     analyzedAt: string
   }>
@@ -548,7 +549,7 @@ export default function CandidateAssessmentPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {latestGitHubAnalysis.repositories.slice(0, 5).map((repo: any, index: number) => (
+                  {latestGitHubAnalysis.repositories.slice(0, 5).map((repo: Repository, index: number) => (
                     <div key={index} className="border-l-4 border-blue-200 pl-4 py-2">
                       <div className="flex justify-between items-start">
                         <div>

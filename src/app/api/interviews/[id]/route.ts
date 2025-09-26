@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 export async function GET(
   request: NextRequest,
@@ -80,7 +81,7 @@ export async function PUT(
       recommendation
     } = data
 
-    const updateData: any = {}
+    const updateData: Prisma.InterviewUpdateInput = {}
     
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description

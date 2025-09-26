@@ -1,4 +1,5 @@
 import NextAuth, { NextAuthOptions, DefaultSession } from 'next-auth'
+import { JWT } from 'next-auth/jwt'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import GitHubProvider from 'next-auth/providers/github'
 import CredentialsProvider from 'next-auth/providers/credentials'
@@ -13,6 +14,7 @@ declare module 'next-auth' {
     user: {
       id: string
       role: UserRole
+      organizationId: string
       company?: string
       position?: string
     } & DefaultSession['user']
@@ -20,6 +22,7 @@ declare module 'next-auth' {
   
   interface User {
     role: UserRole
+    organizationId: string
     company?: string
     position?: string
   }
@@ -28,6 +31,7 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     role: UserRole
+    organizationId: string
     company?: string
     position?: string
   }
@@ -195,7 +199,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    jwt: async ({ token, user, account }: any) => {
+    jwt: async ({ token, user, account }) => {
       if (user) {
         token.role = user.role || UserRole.CANDIDATE
         token.id = user.id
@@ -238,8 +242,8 @@ export const authOptions: NextAuthOptions = {
           token.role = dbUser.role
           token.id = dbUser.id
           token.organizationId = dbUser.organizationId
-          token.company = dbUser.company
-          token.position = dbUser.position
+          token.company = dbUser.company || undefined
+          token.position = dbUser.position || undefined
         } catch (error) {
           console.error('Error handling GitHub user:', error)
         }
@@ -247,9 +251,9 @@ export const authOptions: NextAuthOptions = {
 
       return token
     },
-    session: async ({ session, token }: any) => {
+    session: async ({ session, token }) => {
       if (token && session.user) {
-        session.user.id = token.id || token.sub!
+        session.user.id = (token.id as string) || token.sub!
         session.user.role = token.role as UserRole
         session.user.organizationId = token.organizationId as string
         session.user.company = token.company

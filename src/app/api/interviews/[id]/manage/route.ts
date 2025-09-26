@@ -58,18 +58,31 @@ export async function POST(
         })
 
         // Create assessment record
+        const recommendationMap: Record<string, 'STRONG_HIRE' | 'HIRE' | 'NO_HIRE' | 'STRONG_NO_HIRE'> = {
+          'strong hire': 'STRONG_HIRE',
+          'hire': 'HIRE',
+          'no hire': 'NO_HIRE',
+          'strong no hire': 'STRONG_NO_HIRE',
+          'strong_hire': 'STRONG_HIRE',
+          'no_hire': 'NO_HIRE',
+          'strong_no_hire': 'STRONG_NO_HIRE'
+        }
+        
+        const recommendation = recommendationMap[summary.recommendation.toLowerCase()] || 'HIRE'
+        
         await prisma.assessment.create({
           data: {
             interviewId: id,
             candidateId: interview.candidateId,
             assessorId: interview.interviewerId,
+            organizationId: interview.organizationId,
             technicalScore: summary.overallScore,
             communicationScore: summary.overallScore * 0.9, // Estimate
             problemSolvingScore: summary.overallScore * 1.1, // Estimate
             cultureScore: summary.overallScore * 0.8, // Estimate
             overallScore: summary.overallScore,
             feedback: summary.summary,
-            recommendation: summary.recommendation.toUpperCase().replace(/ /g, '_') as any,
+            recommendation,
             strengths: JSON.stringify(summary.strengths),
             weaknesses: JSON.stringify(summary.weaknesses)
           }

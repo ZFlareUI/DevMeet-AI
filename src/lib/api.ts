@@ -11,7 +11,7 @@ export class APIError extends Error {
   }
 }
 
-export interface APIResponse<T = any> {
+export interface APIResponse<T = unknown> {
   success: boolean
   data?: T
   message?: string
@@ -54,7 +54,7 @@ export async function handleAPIResponse<T>(response: Response): Promise<T> {
   }
 }
 
-export async function apiRequest<T = any>(
+export async function apiRequest<T = unknown>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> {
@@ -90,16 +90,16 @@ export async function apiRequest<T = any>(
 export const api = {
   // Candidates
   candidates: {
-    getAll: (params?: Record<string, any>) => {
-      const searchParams = params ? new URLSearchParams(params).toString() : ''
+    getAll: (params?: Record<string, string | number | boolean>) => {
+      const searchParams = params ? new URLSearchParams(params as Record<string, string>).toString() : ''
       return apiRequest(`/api/candidates${searchParams ? `?${searchParams}` : ''}`)
     },
     getById: (id: string) => apiRequest(`/api/candidates/${id}`),
-    create: (data: any) => apiRequest('/api/candidates', {
+    create: (data: unknown) => apiRequest('/api/candidates', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
-    update: (id: string, data: any) => apiRequest(`/api/candidates/${id}`, {
+    update: (id: string, data: unknown) => apiRequest(`/api/candidates/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     }),
@@ -110,16 +110,16 @@ export const api = {
 
   // Interviews
   interviews: {
-    getAll: (params?: Record<string, any>) => {
-      const searchParams = params ? new URLSearchParams(params).toString() : ''
+    getAll: (params?: Record<string, string | number | boolean>) => {
+      const searchParams = params ? new URLSearchParams(params as Record<string, string>).toString() : ''
       return apiRequest(`/api/interviews${searchParams ? `?${searchParams}` : ''}`)
     },
     getById: (id: string) => apiRequest(`/api/interviews/${id}`),
-    create: (data: any) => apiRequest('/api/interviews', {
+    create: (data: unknown) => apiRequest('/api/interviews', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
-    update: (id: string, data: any) => apiRequest(`/api/interviews/${id}`, {
+    update: (id: string, data: unknown) => apiRequest(`/api/interviews/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     }),
@@ -130,16 +130,16 @@ export const api = {
 
   // Assessments
   assessments: {
-    getAll: (params?: Record<string, any>) => {
-      const searchParams = params ? new URLSearchParams(params).toString() : ''
+    getAll: (params?: Record<string, string | number | boolean>) => {
+      const searchParams = params ? new URLSearchParams(params as Record<string, string>).toString() : ''
       return apiRequest(`/api/assessments${searchParams ? `?${searchParams}` : ''}`)
     },
     getById: (id: string) => apiRequest(`/api/assessments/${id}`),
-    create: (data: any) => apiRequest('/api/assessments', {
+    create: (data: unknown) => apiRequest('/api/assessments', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
-    update: (id: string, data: any) => apiRequest(`/api/assessments/${id}`, {
+    update: (id: string, data: unknown) => apiRequest(`/api/assessments/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     }),

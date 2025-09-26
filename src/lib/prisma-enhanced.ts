@@ -129,12 +129,12 @@ export const DatabaseUtils = {
 
   // Pagination helper
   async paginate<T>(
-    model: any,
+    model: Record<string, unknown>,
     page: number = 1,
     limit: number = 10,
-    where?: any,
-    orderBy?: any,
-    include?: any
+    where?: Record<string, unknown>,
+    orderBy?: Record<string, unknown>,
+    include?: Record<string, unknown>
   ): Promise<{
     data: T[]
     pagination: {
@@ -175,8 +175,8 @@ export const DatabaseUtils = {
   },
 
   // Soft delete helper
-  async softDelete(model: any, id: string): Promise<any> {
-    return model.update({
+  async softDelete(model: Record<string, unknown>, id: string): Promise<unknown> {
+    return (model as any).update({
       where: { id },
       data: {
         deletedAt: new Date(),
@@ -187,7 +187,7 @@ export const DatabaseUtils = {
 
   // Bulk operations with batching
   async bulkCreate<T>(
-    model: any,
+    model: Record<string, unknown>,
     data: T[],
     batchSize: number = 100
   ): Promise<number> {
@@ -195,7 +195,7 @@ export const DatabaseUtils = {
     
     for (let i = 0; i < data.length; i += batchSize) {
       const batch = data.slice(i, i + batchSize)
-      const result = await model.createMany({
+      const result = await (model as any).createMany({
         data: batch,
         skipDuplicates: true
       })
@@ -207,15 +207,15 @@ export const DatabaseUtils = {
 
   // Search helper with full-text search
   async search<T>(
-    model: any,
+    model: Record<string, unknown>,
     searchTerm: string,
     searchFields: string[],
     options: {
       page?: number
       limit?: number
-      where?: any
-      orderBy?: any
-      include?: any
+      where?: Record<string, unknown>
+      orderBy?: Record<string, unknown>
+      include?: Record<string, unknown>
     } = {}
   ): Promise<{ data: T[]; total: number }> {
     const { page = 1, limit = 10, where = {}, orderBy, include } = options
@@ -235,14 +235,14 @@ export const DatabaseUtils = {
     const skip = (page - 1) * limit
     
     const [data, total] = await Promise.all([
-      model.findMany({
+      (model as any).findMany({
         where: searchWhere,
         orderBy,
         include,
         skip,
         take: limit
       }),
-      model.count({ where: searchWhere })
+      (model as any).count({ where: searchWhere })
     ])
     
     return { data, total }
