@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
         }
 
         const planConfig = getPlanConfig(plan as SubscriptionPlan);
-        if (!planConfig.stripePriceId) {
+        if (!(planConfig as any).stripePriceId) {
           return NextResponse.json(
             { error: 'Invalid plan configuration' },
             { status: 400 }
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
         // Create Stripe subscription
         const stripeSubscription = await createStripeSubscription(
           stripeCustomerId,
-          planConfig.stripePriceId,
+          (planConfig as any).stripePriceId,
           organization.id
         );
 
@@ -153,11 +153,11 @@ export async function POST(req: NextRequest) {
             organizationId: organization.id,
             plan: plan as SubscriptionPlan,
             status: 'ACTIVE',
-            currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-            currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+            currentPeriodStart: new Date((stripeSubscription as any).current_period_start * 1000),
+            currentPeriodEnd: new Date((stripeSubscription as any).current_period_end * 1000),
             stripeCustomerId,
             stripeSubscriptionId: stripeSubscription.id,
-            stripePriceId: planConfig.stripePriceId,
+            stripePriceId: (planConfig as any).stripePriceId,
           },
         });
 
@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
           subscriptionId: stripeSubscription.id,
-          clientSecret: stripeSubscription.latest_invoice?.payment_intent?.client_secret,
+          clientSecret: (stripeSubscription as any).latest_invoice?.payment_intent?.client_secret,
         });
       }
 
@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
         }
 
         const planConfig = getPlanConfig(plan as SubscriptionPlan);
-        if (!planConfig.stripePriceId) {
+        if (!(planConfig as any).stripePriceId) {
           return NextResponse.json(
             { error: 'Invalid plan configuration' },
             { status: 400 }
@@ -192,7 +192,7 @@ export async function POST(req: NextRequest) {
         // Update Stripe subscription
         const updatedSubscription = await updateStripeSubscription(
           currentSubscription.stripeSubscriptionId,
-          planConfig.stripePriceId
+          (planConfig as any).stripePriceId
         );
 
         // Update database
@@ -200,8 +200,8 @@ export async function POST(req: NextRequest) {
           where: { id: currentSubscription.id },
           data: {
             plan: plan as SubscriptionPlan,
-            stripePriceId: planConfig.stripePriceId,
-            currentPeriodEnd: new Date(updatedSubscription.current_period_end * 1000),
+            stripePriceId: (planConfig as any).stripePriceId,
+            currentPeriodEnd: new Date((updatedSubscription as any).current_period_end * 1000),
           },
         });
 

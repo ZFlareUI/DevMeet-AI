@@ -117,6 +117,7 @@ async function main() {
       update: {},
       create: {
         ...candidateData,
+        organizationId: organization.id,
         githubUrl: candidateData.githubUsername ? `https://github.com/${candidateData.githubUsername}` : null,
         status: CandidateStatus.APPLIED
       }
@@ -182,6 +183,7 @@ async function main() {
       const analysis = await prisma.gitHubAnalysis.create({
         data: {
           candidateId: candidate.id,
+          organizationId: organization.id,
           username: analysisData.username,
           profileData: JSON.stringify({
             login: analysisData.username,
@@ -236,6 +238,7 @@ async function main() {
           description: `Technical assessment for ${candidate.name}`,
           candidateId: candidate.id,
           interviewerId: interviewerUser.id,
+          organizationId: organization.id,
           type: InterviewType.TECHNICAL,
           status: Math.random() > 0.5 ? InterviewStatus.COMPLETED : InterviewStatus.SCHEDULED,
           scheduledAt: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000), // Random date in next 7 days
@@ -266,6 +269,7 @@ async function main() {
             interviewId: interview.id,
             candidateId: candidate.id,
             assessorId: interviewerUser.id,
+            organizationId: organization.id,
             technicalScore: interview.score!,
             communicationScore: interview.score! * 0.9,
             problemSolvingScore: interview.score! * 1.1,

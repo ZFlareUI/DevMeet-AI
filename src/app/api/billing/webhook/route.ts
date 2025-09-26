@@ -88,29 +88,36 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   const status = mapStripeStatus(subscription.status);
 
   // Update or create subscription
-  await prisma.subscription.upsert({
-    where: {
-      stripeSubscriptionId: subscription.id,
-    },
-    update: {
-      plan,
-      status,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
-    },
-    create: {
-      organizationId,
-      plan,
-      status,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
-      stripeCustomerId: subscription.customer as string,
-      stripeSubscriptionId: subscription.id,
-      stripePriceId: priceId,
-    },
-  });
+  const existingSubscription = await prisma.subscription.findFirst({
+    where: { stripeSubscriptionId: subscription.id }
+  })
+
+  if (existingSubscription) {
+    await prisma.subscription.update({
+      where: { id: existingSubscription.id },
+      data: {
+        plan,
+        status,
+        currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+        cancelAtPeriodEnd: (subscription as any).cancel_at_period_end,
+      }
+    })
+  } else {
+    await prisma.subscription.create({
+      data: {
+        organizationId,
+        plan,
+        status,
+        currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+        cancelAtPeriodEnd: (subscription as any).cancel_at_period_end,
+        stripeCustomerId: subscription.customer as string,
+        stripeSubscriptionId: subscription.id,
+        stripePriceId: priceId,
+      }
+    })
+  }
 
   // Update organization plan
   await prisma.organization.update({
@@ -127,13 +134,19 @@ async function handleSubscriptionCancellation(subscription: Stripe.Subscription)
   if (!organizationId) return;
 
   // Update subscription status
-  await prisma.subscription.update({
-    where: { stripeSubscriptionId: subscription.id },
-    data: {
-      status: 'CANCELLED',
-      cancelAtPeriodEnd: true,
-    },
-  });
+  const existingSub = await prisma.subscription.findFirst({
+    where: { stripeSubscriptionId: subscription.id }
+  })
+  
+  if (existingSub) {
+    await prisma.subscription.update({
+      where: { id: existingSub.id },
+      data: {
+        status: 'CANCELLED',
+        cancelAtPeriodEnd: true,
+      },
+    })
+  }
 
   // Downgrade organization to FREE plan
   await prisma.organization.update({
@@ -143,11 +156,11 @@ async function handleSubscriptionCancellation(subscription: Stripe.Subscription)
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-  if (!invoice.subscription) return;
+  if (!(invoice as any).subscription) return;
 
   // Find subscription by Stripe subscription ID
-  const subscription = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: invoice.subscription as string },
+  const subscription = await prisma.subscription.findFirst({
+    where: { stripeSubscriptionId: (invoice as any).subscription as string },
   });
 
   if (subscription) {
@@ -166,11 +179,11 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  if (!invoice.subscription) return;
+  if (!(invoice as any).subscription) return;
 
   // Find subscription by Stripe subscription ID
-  const subscription = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: invoice.subscription as string },
+  const subscription = await prisma.subscription.findFirst({
+    where: { stripeSubscriptionId: (invoice as any).subscription as string },
   });
 
   if (subscription) {
