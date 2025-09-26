@@ -217,9 +217,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
     if (!session) {
       return createErrorResponse('Unauthorized', 401)
@@ -230,7 +231,7 @@ export async function DELETE(
       return createErrorResponse('Forbidden', 403)
     }
 
-    const candidateId = params.id
+    const candidateId = id
 
     if (!candidateId) {
       return createErrorResponse('Candidate ID is required')
