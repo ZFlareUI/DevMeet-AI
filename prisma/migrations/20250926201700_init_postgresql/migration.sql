@@ -1,12 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the `Account` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Session` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `User` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `VerificationToken` table. If the table is not empty, all the data it contains will be lost.
-
-*/
+-- Initial PostgreSQL migration for DevMeet AI SaaS Platform
+-- This migration creates all tables with complete multi-tenant architecture
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'RECRUITER', 'INTERVIEWER', 'CANDIDATE');
 
@@ -39,6 +32,7 @@ CREATE TABLE "organizations" (
     "plan" "SubscriptionPlan" NOT NULL DEFAULT 'FREE',
     "planLimits" TEXT NOT NULL DEFAULT '{}',
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "stripeCustomerId" TEXT,
     "trialEndsAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -213,6 +207,9 @@ CREATE UNIQUE INDEX "organizations_slug_key" ON "organizations"("slug");
 CREATE UNIQUE INDEX "organizations_domain_key" ON "organizations"("domain");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "organizations_stripeCustomerId_key" ON "organizations"("stripeCustomerId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
@@ -304,6 +301,135 @@ ALTER TABLE "assessments" ADD CONSTRAINT "assessments_assessorId_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "assessments" ADD CONSTRAINT "assessments_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- CreateTable
+CREATE TABLE "invitations" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "role" "UserRole" NOT NULL DEFAULT 'CANDIDATE',
+    "organizationId" TEXT NOT NULL,
+    "invitedById" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "acceptedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "invitations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "usage_metrics" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "metricType" TEXT NOT NULL,
+    "value" INTEGER NOT NULL,
+    "month" INTEGER NOT NULL,
+    "year" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "usage_metrics_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "uploaded_files" (
+    "id" TEXT NOT NULL,
+    "filename" TEXT NOT NULL,
+    "originalName" TEXT NOT NULL,
+    "filePath" TEXT NOT NULL,
+    "fileSize" INTEGER NOT NULL,
+    "mimeType" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "uploadedBy" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "candidateId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "uploaded_files_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "security_logs" (
+    "id" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "ip" TEXT NOT NULL,
+    "userAgent" TEXT NOT NULL,
+    "path" TEXT NOT NULL,
+    "userId" TEXT,
+    "details" TEXT NOT NULL,
+    "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "security_logs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "audit_logs" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT,
+    "action" TEXT NOT NULL,
+    "ip" TEXT NOT NULL,
+    "userAgent" TEXT NOT NULL,
+    "details" TEXT NOT NULL,
+    "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "invitations_token_key" ON "invitations"("token");
+
+-- CreateIndex
+CREATE INDEX "invitations_organizationId_idx" ON "invitations"("organizationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "usage_metrics_organizationId_metricType_month_year_key" ON "usage_metrics"("organizationId", "metricType", "month", "year");
+
+-- CreateIndex
+CREATE INDEX "uploaded_files_uploadedBy_idx" ON "uploaded_files"("uploadedBy");
+
+-- CreateIndex
+CREATE INDEX "uploaded_files_organizationId_idx" ON "uploaded_files"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "uploaded_files_candidateId_idx" ON "uploaded_files"("candidateId");
+
+-- CreateIndex
+CREATE INDEX "security_logs_userId_idx" ON "security_logs"("userId");
+
+-- CreateIndex
+CREATE INDEX "security_logs_timestamp_idx" ON "security_logs"("timestamp");
+
+-- CreateIndex
+CREATE INDEX "audit_logs_userId_idx" ON "audit_logs"("userId");
+
+-- CreateIndex
+CREATE INDEX "audit_logs_timestamp_idx" ON "audit_logs"("timestamp");
+
+-- AddForeignKey
+ALTER TABLE "invitations" ADD CONSTRAINT "invitations_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "invitations" ADD CONSTRAINT "invitations_invitedById_fkey" FOREIGN KEY ("invitedById") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "usage_metrics" ADD CONSTRAINT "usage_metrics_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "uploaded_files" ADD CONSTRAINT "uploaded_files_uploadedBy_fkey" FOREIGN KEY ("uploadedBy") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "uploaded_files" ADD CONSTRAINT "uploaded_files_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "uploaded_files" ADD CONSTRAINT "uploaded_files_candidateId_fkey" FOREIGN KEY ("candidateId") REFERENCES "candidates"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "security_logs" ADD CONSTRAINT "security_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
