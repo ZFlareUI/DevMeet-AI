@@ -3,6 +3,39 @@ import { getToken } from 'next-auth/jwt'
 import { UserRole } from '@prisma/client'
 import { securityMiddleware } from '@/lib/security'
 
+// Security headers
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "connect-src 'self'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "base-uri 'self'",
+    "object-src 'none'"
+  ].join('; ')
+}
+
+// Rate limiting configuration
+const RATE_LIMITS = {
+  '/api/': 60,
+  '/auth/': 30,
+  default: 100
+}
+
+const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute in milliseconds
+
+// Simple in-memory rate limit store (in production, use Redis)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
+
 // Define public routes that don't require authentication
 const publicRoutes = [
   '/',

@@ -149,7 +149,8 @@ export async function middleware(request: NextRequest) {
       if (!token) return null
       try {
         // Verify and decode token with additional security checks
-        return await verifyJWT(token as string, secret, {
+        // @ts-ignore - Type mismatch between next-auth and jwt library
+        return await verifyJWT(token as any, secret, {
           algorithms: ['HS256'],
           maxAge: process.env.NEXTAUTH_JWT_EXPIRES_IN || '30d',
           clockTolerance: 15, // 15 seconds clock tolerance

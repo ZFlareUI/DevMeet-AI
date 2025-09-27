@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SessionProvider } from 'next-auth/react'
 import { Session } from 'next-auth'
@@ -18,9 +18,9 @@ jest.mock('next/navigation', () => ({
 const mockFetch = jest.fn()
 global.fetch = mockFetch
 
-const MockedSessionProvider = ({ children, session }: any) => {
+const MockedSessionProvider = ({ children, session }: { children: React.ReactNode; session: unknown }) => {
   return (
-    <SessionProvider session={session}>
+    <SessionProvider session={session as Session | null}>
       {children}
     </SessionProvider>
   )

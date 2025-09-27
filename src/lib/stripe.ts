@@ -161,7 +161,7 @@ export async function createBillingPortalSession(
 }
 
 // Get usage for billing
-export async function getUsageMetrics(organizationId: string, period: string = 'monthly') {
+export async function getUsageMetrics(organizationId: string) {
   // This would be implemented to fetch from your database
   // For now, returning a placeholder
   return {

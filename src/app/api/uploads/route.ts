@@ -109,6 +109,7 @@ export async function POST(request: NextRequest) {
         fileSize: file.size,
         mimeType: file.type,
         uploadedBy: session.user.id,
+        organizationId: session.user.organizationId,
         type: type || 'document',
         candidateId: candidateId || null
       }

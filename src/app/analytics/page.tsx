@@ -17,18 +17,6 @@ interface InterviewSummary {
   score?: number
 }
 
-interface AnalyticsData {
-  totalCandidates: number
-  totalInterviews: number
-  completedInterviews: number
-  avgScore: number
-  hireRate: number
-  recentCandidates: CandidateSummary[]
-  recentInterviews: InterviewSummary[]
-  scoreDistribution: { range: string; count: number }[]
-  positionStats: { position: string; count: number; avgScore: number }[]
-}
-
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Navigation from '@/components/ui/navigation'

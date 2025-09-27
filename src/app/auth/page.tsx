@@ -62,7 +62,7 @@ export default function AuthPage() {
         addToast({ message: 'Signed in successfully!', type: 'success' })
         window.location.href = '/dashboard'
       }
-    } catch (error) {
+    } catch (_error) {
       addToast({ message: 'Failed to sign in', type: 'error' })
     } finally {
       setIsSigningIn(false)

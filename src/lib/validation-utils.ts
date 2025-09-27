@@ -18,18 +18,18 @@ export const sanitizeInput = (input: string): string => {
 /**
  * Validates and sanitizes an object's string properties
  */
-export const sanitizeObject = <T extends Record<string, any>>(obj: T): T => {
-  const result: Record<string, any> = { ...obj }
+export const sanitizeObject = <T extends Record<string, unknown>>(obj: T): T => {
+  const result: Record<string, unknown> = { ...obj }
   
   for (const key in result) {
     if (typeof result[key] === 'string') {
-      result[key] = sanitizeInput(result[key])
+      result[key] = sanitizeInput(result[key] as string)
     } else if (Array.isArray(result[key])) {
-      result[key] = result[key].map((item: any) => 
+      result[key] = (result[key] as unknown[]).map((item: unknown) => 
         typeof item === 'string' ? sanitizeInput(item) : item
       )
     } else if (typeof result[key] === 'object' && result[key] !== null) {
-      result[key] = sanitizeObject(result[key])
+      result[key] = sanitizeObject(result[key] as Record<string, unknown>)
     }
   }
   
@@ -82,7 +82,7 @@ export const validateRequest = async <T>(
     const body = await request.json()
     const sanitizedBody = sanitizeObject(body)
     return validateWithSchema(schema, sanitizedBody)
-  } catch (error) {
+  } catch (_error) {
     return {
       success: false,
       response: NextResponse.json(
@@ -121,7 +121,7 @@ export const validateQueryParams = <T>(
   })
   
   // Convert single-item arrays to single values for schema validation
-  const processedParams: Record<string, any> = {}
+  const processedParams: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(params)) {
     processedParams[key] = Array.isArray(value) && value.length === 1 ? value[0] : value
   }
@@ -169,7 +169,7 @@ export const validateFileUpload = (file: File, options: {
 /**
  * Validates and parses JSON strings
  */
-export const safeJsonParse = <T = any>(jsonString: string): { success: true; data: T } | { success: false; error: Error } => {
+export const safeJsonParse = <T = unknown>(jsonString: string): { success: true; data: T } | { success: false; error: Error } => {
   try {
     const parsed = JSON.parse(jsonString)
     return { success: true, data: parsed }

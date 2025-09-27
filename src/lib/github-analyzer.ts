@@ -98,7 +98,7 @@ export class GitHubAnalyzer {
         overallScores
       )
 
-      const recommendations = this.generateRecommendations(overallScores, insights)
+      const recommendations = this.generateRecommendations(overallScores)
 
       return {
         profile,
@@ -327,7 +327,7 @@ export class GitHubAnalyzer {
     return insights
   }
 
-  private generateRecommendations(scores: OverallScores, insights: string[]): string[] {
+  private generateRecommendations(scores: OverallScores): string[] {
     const recommendations: string[] = []
 
     if (scores.overall > 7) {

@@ -12,15 +12,13 @@ import {
   PlayCircleIcon,
   CalendarIcon,
   CheckCircleIcon,
-  PlusIcon,
-  MagnifyingGlassIcon,
-  ExclamationTriangleIcon
+  PlusIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toast';
 import { api } from '@/lib/api';
-import type { Candidate, Interview } from '@/lib/validation';
+import type { Candidate, Interview } from '@/lib/api';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -30,7 +28,6 @@ export default function Dashboard() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [stats, setStats] = useState({
     activeInterviews: 0,
     candidatesInPipeline: 0,
@@ -68,29 +65,30 @@ export default function Dashboard() {
           api.interviews.getAll()
         ]);
 
-        if (candidatesResponse.success) {
+        if (candidatesResponse.success && candidatesResponse.data) {
           setCandidates(candidatesResponse.data);
         } else {
           addToast({ message: candidatesResponse.error || 'Failed to load candidates', type: 'error' });
         }
 
-        if (interviewsResponse.success) {
+        if (interviewsResponse.success && interviewsResponse.data) {
           setInterviews(interviewsResponse.data);
         } else {
           addToast({ message: interviewsResponse.error || 'Failed to load interviews', type: 'error' });
         }
 
         // Calculate stats
-        const candidatesData = candidatesResponse.success ? candidatesResponse.data : [];
-        const interviewsData = interviewsResponse.success ? interviewsResponse.data : [];
+        const candidatesData = candidatesResponse.success && candidatesResponse.data ? candidatesResponse.data : [];
+        const interviewsData = interviewsResponse.success && interviewsResponse.data ? interviewsResponse.data : [];
         
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
         
         setStats({
           activeInterviews: interviewsData.filter((i: Interview) => i.status === 'scheduled' || i.status === 'in-progress').length,
-          candidatesInPipeline: candidatesData.filter((c: Candidate) => !['HIRED', 'REJECTED'].includes(c.status)).length,
+          candidatesInPipeline: candidatesData.filter((c: Candidate) => c.status && !['HIRED', 'REJECTED'].includes(c.status)).length,
           interviewsThisMonth: interviewsData.filter((i: Interview) => {
+            if (!i.scheduledAt) return false;
             const interviewDate = new Date(i.scheduledAt);
             return interviewDate.getMonth() === currentMonth && interviewDate.getFullYear() === currentYear;
           }).length,
@@ -129,13 +127,6 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Failed to schedule interview:', error);
       addToast({ message: 'Failed to schedule interview', type: 'error' });
-    }
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/candidates?search=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -190,7 +181,8 @@ export default function Dashboard() {
   ];
 
   const recentInterviews = interviews
-    .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+    .filter(interview => interview.scheduledAt)
+    .sort((a, b) => new Date(b.scheduledAt!).getTime() - new Date(a.scheduledAt!).getTime())
     .slice(0, 5)
     .map(interview => {
       const candidate = candidates.find(c => c.id === interview.candidateId);
@@ -333,8 +325,14 @@ export default function Dashboard() {
                             <h3 className="font-semibold text-white group-hover:text-blue-100 transition-colors duration-300">{interview.candidateName}</h3>
                             <p className="text-sm text-slate-300 group-hover:text-slate-200 transition-colors duration-300">{interview.title}</p>
                             <p className="text-xs text-slate-400 group-hover:text-blue-300 transition-colors duration-300">
-                              {new Date(interview.scheduledAt).toLocaleDateString()} at{' '}
-                              {new Date(interview.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {interview.scheduledAt ? (
+                                <>
+                                  {new Date(interview.scheduledAt).toLocaleDateString()} at{' '}
+                                  {new Date(interview.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </>
+                              ) : (
+                                'Not scheduled'
+                              )}
                             </p>
                           </div>
                         </div>

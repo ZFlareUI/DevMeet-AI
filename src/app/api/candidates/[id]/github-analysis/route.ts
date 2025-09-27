@@ -9,7 +9,12 @@ export async function POST(
   try {
     const { id } = await params
     const candidate = await prisma.candidate.findUnique({
-      where: { id }
+      where: { id },
+      select: {
+        id: true,
+        githubUsername: true,
+        organizationId: true
+      }
     })
 
     if (!candidate || !candidate.githubUsername) {
@@ -31,6 +36,7 @@ export async function POST(
     const githubAnalysis = await prisma.gitHubAnalysis.create({
       data: {
         candidateId: id,
+        organizationId: candidate.organizationId,
         username: candidate.githubUsername,
         profileData: JSON.stringify(analysis.profile),
         repositories: JSON.stringify(analysis.repositories),

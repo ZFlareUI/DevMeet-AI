@@ -30,7 +30,6 @@ export default function AddCandidatePage() {
   const [skillInput, setSkillInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [uploadedResumeId, setUploadedResumeId] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -296,7 +295,6 @@ export default function AddCandidatePage() {
                   acceptedTypes={['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']}
                   onUploadComplete={(file) => {
                     setFormData(prev => ({ ...prev, resume: file.url }));
-                    setUploadedResumeId(file.id);
                     addToast({ message: 'Resume uploaded successfully', type: 'success' });
                   }}
                   onUploadError={(error) => {

@@ -48,7 +48,7 @@ export default function RegisterPage() {
     setIsLoading(true)
     try {
       await signIn('github', { callbackUrl: '/dashboard' })
-    } catch (error) {
+    } catch (_error) {
       addToast({
         type: 'error',
         message: 'GitHub sign-in failed. Please try again.'

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { GitHubAnalyzer } from '@/lib/github-analyzer'
+import { Prisma, CandidateStatus } from '@prisma/client'
 import { 
   candidateSchema, 
   candidateQuerySchema,
@@ -12,26 +13,10 @@ import {
 import { 
   createSuccessResponse, 
   createErrorResponse, 
-  createValidationErrorResponse, 
-  createUnauthorizedResponse,
-  createForbiddenResponse,
   createServerErrorResponse
 } from '@/lib/api-response'
 import { validateRequest, validateQueryParams } from '@/lib/validation-utils'
 import { logger } from '@/lib/logger'
-import { getEnvVar } from '@/lib/env'
-import { randomUUID } from 'crypto'
-
-// Define CandidateStatus enum if not already defined in your schema
-export enum CandidateStatus {
-  APPLIED = 'APPLIED',
-  SCREENING = 'SCREENING',
-  INTERVIEWING = 'INTERVIEWING',
-  OFFERED = 'OFFERED',
-  HIRED = 'HIRED',
-  REJECTED = 'REJECTED',
-  ARCHIVED = 'ARCHIVED'
-}
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
@@ -69,7 +54,7 @@ export async function GET(request: NextRequest) {
     const { page, limit, sortBy = 'createdAt', sortOrder = 'desc', search, status, experience } = queryValidation.data
     
     // Build the where clause with type safety
-    const where: any = {
+    const where: Prisma.CandidateWhereInput = {
       organizationId: session.user.organizationId,
       ...(search && {
         OR: [
@@ -78,7 +63,7 @@ export async function GET(request: NextRequest) {
           { position: { contains: search, mode: 'insensitive' } }
         ]
       }),
-      ...(status && { status }),
+      ...(status && Object.values(CandidateStatus).includes(status as CandidateStatus) && { status: status as CandidateStatus }),
       ...(experience && { experience })
     }
 
@@ -162,7 +147,6 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const startTime = Date.now()
   const requestId = crypto.randomUUID()
   
   try {

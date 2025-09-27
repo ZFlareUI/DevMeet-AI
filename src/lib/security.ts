@@ -72,7 +72,6 @@ function getClientIP(request: NextRequest): string {
 
 // Get rate limiter for endpoint type
 function getRateLimiter(type: keyof typeof rateLimitConfigs): SimpleRateLimiter {
-  const config = rateLimitConfigs[type]
   return rateLimiters[type]
 }
 
@@ -113,7 +112,6 @@ async function logSecurityEvent(event: {
 // Check for suspicious patterns
 function detectSuspiciousActivity(request: NextRequest): boolean {
   const userAgent = request.headers.get('user-agent') || ''
-  const path = request.nextUrl.pathname
   
   // Common attack patterns
   const suspiciousPatterns = [

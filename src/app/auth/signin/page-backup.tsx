@@ -131,7 +131,7 @@ export default function SignInPage() {
         addToast({ message: `Signed in as ${role}!`, type: 'success' })
         router.push('/dashboard')
       }
-    } catch (error) {
+    } catch (_error) {
       addToast({ message: 'Failed to sign in', type: 'error' })
     } finally {
       setIsLoading(false)
