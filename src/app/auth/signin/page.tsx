@@ -47,7 +47,7 @@ export default function SignInPage() {
       } else if (result?.ok) {
         router.push('/dashboard')
       }
-    } catch (error) {
+    } catch (_error) {
       alert('Something went wrong. Please try again.')
     } finally {
       setIsLoading(false)
@@ -58,7 +58,7 @@ export default function SignInPage() {
     setIsLoading(true)
     try {
       await signIn('github', { callbackUrl: '/dashboard' })
-    } catch (error) {
+    } catch (_error) {
       alert('GitHub sign-in failed. Please try again.')
       setIsLoading(false)
     }

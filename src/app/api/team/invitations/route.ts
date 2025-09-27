@@ -3,10 +3,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { canPerformAction } from '@/lib/usage-tracking';
-import { UserRole, InvitationStatus } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { randomBytes } from 'crypto';
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {

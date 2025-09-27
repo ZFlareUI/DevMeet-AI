@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma';
 import { getPlanConfig, isWithinLimits } from '@/lib/stripe';
-import { SubscriptionPlan } from '@prisma/client';
 
 export interface UsageStats {
   candidates: number;

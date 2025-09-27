@@ -11,7 +11,7 @@ interface JWTDecoded extends JwtPayload {
   role?: string
   email?: string
   organizationId?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export const signJWT = (

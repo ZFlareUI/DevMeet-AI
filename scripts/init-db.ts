@@ -3,6 +3,24 @@ import { PrismaClient, UserRole } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
+  // Create demo organization if it doesn't exist
+  let organization = await prisma.organization.findFirst({
+    where: { slug: 'demo-org' }
+  })
+
+  if (!organization) {
+    organization = await prisma.organization.create({
+      data: {
+        name: 'Demo Organization',
+        slug: 'demo-org',
+        domain: 'demo.devmeet.ai',
+        plan: 'FREE',
+        isActive: true
+      }
+    })
+    console.log('Created demo organization')
+  }
+
   // Create demo users if they don't exist
   const demoUsers = [
     {
@@ -11,7 +29,8 @@ async function main() {
       email: 'admin@devmeet.ai',
       role: UserRole.ADMIN,
       company: 'DevMeet AI',
-      position: 'System Administrator'
+      position: 'System Administrator',
+      organizationId: organization.id
     },
     {
       id: 'recruiter-1',
@@ -19,7 +38,8 @@ async function main() {
       email: 'recruiter@devmeet.ai',
       role: UserRole.RECRUITER,
       company: 'TechCorp',
-      position: 'Senior Recruiter'
+      position: 'Senior Recruiter',
+      organizationId: organization.id
     },
     {
       id: 'interviewer-1',
@@ -27,14 +47,16 @@ async function main() {
       email: 'interviewer@devmeet.ai',
       role: UserRole.INTERVIEWER,
       company: 'TechCorp',
-      position: 'Senior Engineer'
+      position: 'Senior Engineer',
+      organizationId: organization.id
     },
     {
       id: 'candidate-1',
       name: 'Alex Smith',
       email: 'candidate@devmeet.ai',
       role: UserRole.CANDIDATE,
-      position: 'Full Stack Developer'
+      position: 'Full Stack Developer',
+      organizationId: organization.id
     }
   ]
 

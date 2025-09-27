@@ -120,7 +120,7 @@ async function checkStorage(): Promise<{ status: 'healthy' | 'unhealthy'; respon
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const startTime = Date.now()
   
   try {
@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
       headers
     })
 
-  } catch (error) {
+  } catch (_error) {
     const result: HealthCheckResult = {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
@@ -197,7 +197,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Simple health check endpoint for load balancers
-export async function HEAD(request: NextRequest) {
+export async function HEAD(_request: NextRequest) {
   try {
     await prisma.$queryRaw`SELECT 1`
     return new NextResponse(null, { status: 200 })

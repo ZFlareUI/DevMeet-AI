@@ -11,12 +11,11 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ClockIcon,
   CalendarIcon
 } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Repository, GitHubAnalysis } from '@/lib/github-analyzer'
+import { Repository } from '@/lib/github-analyzer'
 
 interface Candidate {
   id: string

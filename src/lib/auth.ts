@@ -1,12 +1,10 @@
 import NextAuth, { NextAuthOptions, DefaultSession } from 'next-auth'
-import { JWT } from 'next-auth/jwt'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import GitHubProvider from 'next-auth/providers/github'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { UserRole } from '@prisma/client'
-import { randomBytes, createHash } from 'crypto'
 
 // Extend the default session type
 declare module 'next-auth' {
@@ -61,15 +59,6 @@ function checkRateLimit(email: string): boolean {
 
 function clearRateLimit(email: string) {
   loginAttempts.delete(email)
-}
-
-// Session security
-function generateSessionToken(): string {
-  return randomBytes(32).toString('hex')
-}
-
-function hashSessionToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex')
 }
 
 export const authOptions: NextAuthOptions = {

@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { candidateUpdateSchema, validateInput, createErrorResponse, createSuccessResponse } from '@/lib/validation'
-import { GitHubAnalyzer } from '@/lib/github-analyzer'
 import { Prisma } from '@prisma/client'
 
 export async function GET(

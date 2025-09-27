@@ -9,12 +9,11 @@ import {
   PlayCircleIcon,
   PlusIcon,
   MagnifyingGlassIcon,
-  FunnelIcon,
   DocumentTextIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface Interview {
   id: string

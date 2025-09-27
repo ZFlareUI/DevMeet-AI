@@ -2,7 +2,6 @@ import winston from 'winston'
 import { format } from 'winston'
 import 'winston-daily-rotate-file'
 import path from 'path'
-import { NextApiRequest } from 'next'
 
 const { combine, timestamp, printf, colorize, json } = format
 
@@ -87,7 +86,7 @@ const logger = winston.createLogger({
 })
 
 // Add request logging middleware
-const requestLogger = winston.format((info) => {
+const requestLogger = winston.format((info: any) => {
   if (info.req) {
     info.message = {
       method: info.req.method,
@@ -114,7 +113,7 @@ const requestLogger = winston.format((info) => {
 })
 
 // Helper to redact sensitive information from logs
-const redactSensitiveData = (data: any): any => {
+const redactSensitiveData = (data: unknown): unknown => {
   if (!data || typeof data !== 'object') return data
   
   const sensitiveFields = [
@@ -138,9 +137,9 @@ const redactSensitiveData = (data: any): any => {
     return data.map(item => redactSensitiveData(item))
   }
   
-  const result: Record<string, any> = {}
+  const result: Record<string, unknown> = {}
   
-  for (const [key, value] of Object.entries(data)) {
+  for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
     if (sensitiveFields.includes(key.toLowerCase())) {
       result[key] = '***REDACTED***'
     } else if (value && typeof value === 'object') {

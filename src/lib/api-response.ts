@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: {
     code: string
     message: string
-    details?: any
+    details?: unknown
   }
   meta?: {
     page?: number
@@ -18,7 +18,7 @@ export interface ApiResponse<T = any> {
   }
 }
 
-export const createSuccessResponse = <T = any>(
+export const createSuccessResponse = <T = unknown>(
   data: T,
   meta?: ApiResponse['meta'],
   status = 200
@@ -37,19 +37,21 @@ export const createErrorResponse = (
   message: string,
   status = 400,
   code = 'BAD_REQUEST',
-  details?: any
+  details?: unknown
 ): NextResponse<ApiResponse> => {
-  return NextResponse.json(
-    {
-      success: false,
-      error: {
-        code,
-        message,
-        ...(details && { details }),
-      },
+  const errorResponse: ApiResponse = {
+    success: false,
+    error: {
+      code,
+      message,
     },
-    { status }
-  )
+  }
+
+  if (details && typeof details === 'object' && details !== null) {
+    errorResponse.error!.details = details
+  }
+
+  return NextResponse.json(errorResponse, { status })
 }
 
 export const createValidationErrorResponse = (errors: Record<string, string[]>) => {
@@ -84,7 +86,7 @@ export const createServerErrorResponse = (error: Error) => {
 }
 
 // Helper to create paginated responses
-export const createPaginatedResponse = <T = any>({
+export const createPaginatedResponse = <T = unknown>({
   data,
   page,
   limit,

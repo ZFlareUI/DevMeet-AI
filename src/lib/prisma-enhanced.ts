@@ -115,7 +115,7 @@ export const DatabaseUtils = {
         })
       } catch (error) {
         lastError = error as Error
-        Logger.warn(`Transaction attempt ${attempt} failed`, lastError)
+  Logger.warn(`Transaction attempt ${attempt} failed`, { error: lastError })
         
         if (attempt < maxRetries) {
           // Exponential backoff
@@ -129,7 +129,16 @@ export const DatabaseUtils = {
 
   // Pagination helper
   async paginate<T>(
-    model: Record<string, unknown>,
+    model: {
+      findMany: (args: {
+        where?: Record<string, unknown>
+        orderBy?: Record<string, unknown>
+        include?: Record<string, unknown>
+        skip?: number
+        take?: number
+      }) => Promise<T[]>
+      count: (args: { where?: Record<string, unknown> }) => Promise<number>
+    },
     page: number = 1,
     limit: number = 10,
     where?: Record<string, unknown>,
@@ -175,8 +184,8 @@ export const DatabaseUtils = {
   },
 
   // Soft delete helper
-  async softDelete(model: Record<string, unknown>, id: string): Promise<unknown> {
-    return (model as any).update({
+  async softDelete<T extends { id: string }>(model: { update: (args: { where: { id: string }, data: { deletedAt: Date, isActive: boolean } }) => Promise<T> }, id: string): Promise<T> {
+    return model.update({
       where: { id },
       data: {
         deletedAt: new Date(),
@@ -187,27 +196,34 @@ export const DatabaseUtils = {
 
   // Bulk operations with batching
   async bulkCreate<T>(
-    model: Record<string, unknown>,
+    model: { createMany: (args: { data: T[], skipDuplicates: boolean }) => Promise<{ count: number }> },
     data: T[],
     batchSize: number = 100
   ): Promise<number> {
     let totalCreated = 0
-    
     for (let i = 0; i < data.length; i += batchSize) {
       const batch = data.slice(i, i + batchSize)
-      const result = await (model as any).createMany({
+      const result = await model.createMany({
         data: batch,
         skipDuplicates: true
       })
       totalCreated += result.count
     }
-    
     return totalCreated
   },
 
   // Search helper with full-text search
   async search<T>(
-    model: Record<string, unknown>,
+    model: {
+      findMany: (args: {
+        where?: Record<string, unknown>
+        orderBy?: Record<string, unknown>
+        include?: Record<string, unknown>
+        skip?: number
+        take?: number
+      }) => Promise<T[]>
+      count: (args: { where?: Record<string, unknown> }) => Promise<number>
+    },
     searchTerm: string,
     searchFields: string[],
     options: {
@@ -219,32 +235,27 @@ export const DatabaseUtils = {
     } = {}
   ): Promise<{ data: T[]; total: number }> {
     const { page = 1, limit = 10, where = {}, orderBy, include } = options
-    
     const searchConditions = searchFields.map(field => ({
       [field]: {
         contains: searchTerm,
         mode: 'insensitive' as const
       }
     }))
-    
     const searchWhere = {
       ...where,
       OR: searchConditions
     }
-    
     const skip = (page - 1) * limit
-    
     const [data, total] = await Promise.all([
-      (model as any).findMany({
+      model.findMany({
         where: searchWhere,
         orderBy,
         include,
         skip,
         take: limit
       }),
-      (model as any).count({ where: searchWhere })
+      model.count({ where: searchWhere })
     ])
-    
     return { data, total }
   }
 }

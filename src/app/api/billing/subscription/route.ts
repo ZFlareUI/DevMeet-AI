@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -25,7 +26,7 @@ type PlanConfig = {
   };
 };
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -153,7 +154,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Create Stripe subscription
-        const stripeSubscription = await createStripeSubscription(
+  const stripeSubscription: Stripe.Subscription = await createStripeSubscription(
           stripeCustomerId,
           (planConfig as PlanConfig).stripePriceId!,
           organization.id
@@ -181,7 +182,9 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
           subscriptionId: stripeSubscription.id,
-          clientSecret: (stripeSubscription as any).latest_invoice?.payment_intent?.client_secret,
+          clientSecret: typeof stripeSubscription.latest_invoice === 'object' && stripeSubscription.latest_invoice !== null && 'payment_intent' in stripeSubscription.latest_invoice
+            ? (stripeSubscription.latest_invoice as { payment_intent?: { client_secret?: string } }).payment_intent?.client_secret
+            : undefined,
         });
       }
 
@@ -213,7 +216,7 @@ export async function POST(req: NextRequest) {
           data: {
             plan: plan as SubscriptionPlan,
             stripePriceId: (planConfig as PlanConfig).stripePriceId,
-            currentPeriodEnd: new Date((updatedSubscription as any).current_period_end * 1000),
+            currentPeriodEnd: new Date((updatedSubscription as unknown as { current_period_end: number }).current_period_end * 1000),
           },
         });
 

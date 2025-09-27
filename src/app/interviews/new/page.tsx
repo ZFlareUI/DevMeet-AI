@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toast';
 import { api } from '@/lib/api';
-import { validateInput, interviewSchema, type InterviewInput, type Candidate } from '@/lib/validation';
+import { validateInput, interviewSchema, type Candidate } from '@/lib/validation';
 
 export default function NewInterviewPage() {
   const { data: session } = useSession();
@@ -52,7 +52,7 @@ export default function NewInterviewPage() {
       setIsLoadingCandidates(true);
       // Get all candidates (we'll filter out HIRED and REJECTED on the frontend if needed)
       const response = await api.candidates.getAll();
-      if (response.success) {
+      if (response.success && response.data) {
         // Filter to only show candidates available for interviews
         const availableCandidates = response.data.filter((candidate: { status: string }) => 
           !['HIRED', 'REJECTED'].includes(candidate.status)

@@ -8,10 +8,10 @@ export const config = {
   },
 }
 
-const ioHandler = (req: NextApiRequest, res: NextApiResponse & { socket: { server: any } }) => {
+const ioHandler = (req: NextApiRequest, res: NextApiResponse & { socket: { server: NetServer & { io?: ServerIO } } }) => {
   if (!res.socket?.server?.io) {
     const path = '/api/socket/io'
-    const httpServer: NetServer = res.socket.server as any
+    const httpServer: NetServer = res.socket.server
     const io = new ServerIO(httpServer, {
       path: path,
       addTrailingSlash: false,

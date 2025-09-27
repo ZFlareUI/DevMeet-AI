@@ -9,7 +9,6 @@ import {
   StopCircleIcon,
   MicrophoneIcon,
   VideoCameraIcon,
-  ChatBubbleLeftRightIcon,
   ClockIcon,
   UserIcon,
   ComputerDesktopIcon,
@@ -247,7 +246,6 @@ export default function LiveInterviewPage() {
   }
 
   const currentQuestion = interview.questions.questions[currentQuestionIndex]
-  const hasMoreQuestions = currentQuestionIndex < interview.questions.questions.length - 1
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">

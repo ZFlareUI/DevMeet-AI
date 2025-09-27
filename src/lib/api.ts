@@ -19,7 +19,54 @@ export interface APIResponse<T = unknown> {
   errors?: string[]
 }
 
-export async function handleAPIResponse<T>(response: Response): Promise<T> {
+// Type definitions for API data
+export interface Candidate {
+  id: string
+  userId?: string
+  organizationId: string
+  name: string
+  email: string
+  phone?: string
+  githubUsername?: string
+  githubUrl?: string
+  resume?: string
+  coverLetter?: string
+  position: string
+  experience: string
+  skills: string
+  status: string
+  createdBy?: string
+  createdAt: Date
+  updatedAt: Date
+  githubScore?: number
+}
+
+export interface Interview {
+  id: string
+  candidateId: string
+  interviewerId: string
+  position: string
+  type: string
+  status: string
+  scheduledAt?: Date
+  startedAt?: Date
+  completedAt?: Date
+  duration?: number
+  notes?: string
+  score?: number
+  questions?: string
+  techStack?: string
+  aiPersonality?: string
+  difficultyLevel?: string
+  createdAt: Date
+  title?: string
+  description?: string
+  organizationId?: string
+  recommendation?: string
+  updatedAt?: Date
+}
+
+export async function handleAPIResponse<T>(response: Response): Promise<APIResponse<T>> {
   if (!response.ok) {
     let errorMessage = 'An error occurred'
     
@@ -35,29 +82,27 @@ export async function handleAPIResponse<T>(response: Response): Promise<T> {
       errorMessage = response.statusText || errorMessage
     }
     
-    throw new APIError(errorMessage, response.status)
+    return {
+      success: false,
+      error: errorMessage
+    }
   }
 
   try {
     const data: APIResponse<T> = await response.json()
-    
-    if (!data.success && data.error) {
-      throw new APIError(data.error, response.status)
-    }
-    
-    return data.data || (data as T)
+    return data
   } catch (error) {
-    if (error instanceof APIError) {
-      throw error
+    return {
+      success: false,
+      error: 'Failed to parse response'
     }
-    throw new APIError('Failed to parse response', 500)
   }
 }
 
 export async function apiRequest<T = unknown>(
   url: string,
   options: RequestInit = {}
-): Promise<T> {
+): Promise<APIResponse<T>> {
   const defaultHeaders = {
     'Content-Type': 'application/json',
   }
@@ -90,40 +135,40 @@ export async function apiRequest<T = unknown>(
 export const api = {
   // Candidates
   candidates: {
-    getAll: (params?: Record<string, string | number | boolean>) => {
+    getAll: (params?: Record<string, string | number | boolean>): Promise<APIResponse<Candidate[]>> => {
       const searchParams = params ? new URLSearchParams(params as Record<string, string>).toString() : ''
-      return apiRequest(`/api/candidates${searchParams ? `?${searchParams}` : ''}`)
+      return apiRequest<Candidate[]>(`/api/candidates${searchParams ? `?${searchParams}` : ''}`)
     },
-    getById: (id: string) => apiRequest(`/api/candidates/${id}`),
-    create: (data: unknown) => apiRequest('/api/candidates', {
+    getById: (id: string): Promise<APIResponse<Candidate>> => apiRequest<Candidate>(`/api/candidates/${id}`),
+    create: (data: unknown): Promise<APIResponse<Candidate>> => apiRequest<Candidate>('/api/candidates', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
-    update: (id: string, data: unknown) => apiRequest(`/api/candidates/${id}`, {
+    update: (id: string, data: unknown): Promise<APIResponse<Candidate>> => apiRequest<Candidate>(`/api/candidates/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     }),
-    delete: (id: string) => apiRequest(`/api/candidates/${id}`, {
+    delete: (id: string): Promise<APIResponse<void>> => apiRequest<void>(`/api/candidates/${id}`, {
       method: 'DELETE'
     })
   },
 
   // Interviews
   interviews: {
-    getAll: (params?: Record<string, string | number | boolean>) => {
+    getAll: (params?: Record<string, string | number | boolean>): Promise<APIResponse<Interview[]>> => {
       const searchParams = params ? new URLSearchParams(params as Record<string, string>).toString() : ''
-      return apiRequest(`/api/interviews${searchParams ? `?${searchParams}` : ''}`)
+      return apiRequest<Interview[]>(`/api/interviews${searchParams ? `?${searchParams}` : ''}`)
     },
-    getById: (id: string) => apiRequest(`/api/interviews/${id}`),
-    create: (data: unknown) => apiRequest('/api/interviews', {
+    getById: (id: string): Promise<APIResponse<Interview>> => apiRequest<Interview>(`/api/interviews/${id}`),
+    create: (data: unknown): Promise<APIResponse<Interview>> => apiRequest<Interview>('/api/interviews', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
-    update: (id: string, data: unknown) => apiRequest(`/api/interviews/${id}`, {
+    update: (id: string, data: unknown): Promise<APIResponse<Interview>> => apiRequest<Interview>(`/api/interviews/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     }),
-    delete: (id: string) => apiRequest(`/api/interviews/${id}`, {
+    delete: (id: string): Promise<APIResponse<void>> => apiRequest<void>(`/api/interviews/${id}`, {
       method: 'DELETE'
     })
   },

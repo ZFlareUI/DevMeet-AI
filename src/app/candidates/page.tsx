@@ -55,7 +55,7 @@ export default function CandidatesPage() {
       const response = await api.candidates.getAll(queryParams);
 
       if (response.success) {
-        setCandidates(response.data);
+        setCandidates(response.data || []);
       } else {
         addToast({ message: response.error || 'Failed to load candidates', type: 'error' });
       }

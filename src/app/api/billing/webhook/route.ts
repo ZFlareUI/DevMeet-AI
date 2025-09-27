@@ -98,9 +98,9 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       data: {
         plan,
         status,
-        currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
-        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
-        cancelAtPeriodEnd: (subscription as any).cancel_at_period_end,
+          currentPeriodStart: new Date((subscription['current_period_start'] as number) * 1000),
+          currentPeriodEnd: new Date((subscription['current_period_end'] as number) * 1000),
+          cancelAtPeriodEnd: subscription['cancel_at_period_end'] as boolean,
       }
     })
   } else {
@@ -109,9 +109,9 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
         organizationId,
         plan,
         status,
-        currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
-        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
-        cancelAtPeriodEnd: (subscription as any).cancel_at_period_end,
+          currentPeriodStart: new Date((subscription['current_period_start'] as number) * 1000),
+          currentPeriodEnd: new Date((subscription['current_period_end'] as number) * 1000),
+          cancelAtPeriodEnd: subscription['cancel_at_period_end'] as boolean,
         stripeCustomerId: subscription.customer as string,
         stripeSubscriptionId: subscription.id,
         stripePriceId: priceId,
@@ -156,11 +156,12 @@ async function handleSubscriptionCancellation(subscription: Stripe.Subscription)
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-  if (!(invoice as any).subscription) return;
+  const invoiceWithSubscription = invoice as Stripe.Invoice & { subscription?: string }
+  if (!invoiceWithSubscription.subscription) return;
 
   // Find subscription by Stripe subscription ID
   const subscription = await prisma.subscription.findFirst({
-    where: { stripeSubscriptionId: (invoice as any).subscription as string },
+    where: { stripeSubscriptionId: invoiceWithSubscription.subscription },
   });
 
   if (subscription) {
@@ -179,11 +180,12 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  if (!(invoice as any).subscription) return;
+  const invoiceWithSubscription = invoice as Stripe.Invoice & { subscription?: string }
+  if (!invoiceWithSubscription.subscription) return;
 
   // Find subscription by Stripe subscription ID
   const subscription = await prisma.subscription.findFirst({
-    where: { stripeSubscriptionId: (invoice as any).subscription as string },
+    where: { stripeSubscriptionId: invoiceWithSubscription.subscription },
   });
 
   if (subscription) {

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { useSession } from 'next-auth/react'
 import DashboardPage from '@/app/dashboard/page'
@@ -42,6 +42,7 @@ describe('Dashboard Page', () => {
           email: 'admin@example.com',
           name: 'Admin User',
           role: 'ADMIN',
+          organizationId: 'org-1',
         },
         expires: '2024-12-31',
       },
@@ -82,6 +83,7 @@ describe('Dashboard Page', () => {
           email: 'interviewer@example.com',
           name: 'Interviewer User',
           role: 'INTERVIEWER',
+          organizationId: 'org-1',
         },
         expires: '2024-12-31',
       },
@@ -114,6 +116,7 @@ describe('Dashboard Page', () => {
           email: 'admin@example.com',
           name: 'Admin User',
           role: 'ADMIN',
+          organizationId: 'org-1',
         },
         expires: '2024-12-31',
       },
@@ -142,6 +145,7 @@ describe('Dashboard Page', () => {
           email: 'admin@example.com',
           name: 'Admin User',
           role: 'ADMIN',
+          organizationId: 'org-1',
         },
         expires: '2024-12-31',
       },

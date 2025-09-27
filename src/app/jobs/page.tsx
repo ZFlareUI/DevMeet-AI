@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Navigation from '@/components/ui/navigation'
-import { ArrowLeftIcon, MagnifyingGlassIcon, MapPinIcon, ClockIcon, CurrencyDollarIcon, BriefcaseIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, MapPinIcon, ClockIcon, CurrencyDollarIcon, BriefcaseIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -21,60 +20,60 @@ interface Job {
   urgent: boolean
 }
 
+const jobs: Job[] = [
+  {
+    id: '1',
+    title: 'Senior Full Stack Developer',
+    company: 'TechCorp Inc.',
+    location: 'San Francisco, CA',
+    type: 'Full-time',
+    salary: '$120k - $180k',
+    description: 'We are looking for a senior full stack developer to join our growing team. You will be responsible for developing and maintaining web applications using modern technologies.',
+    requirements: ['React', 'Node.js', 'TypeScript', 'PostgreSQL', '5+ years experience'],
+    posted: '2 days ago',
+    urgent: true
+  },
+  {
+    id: '2',
+    title: 'Frontend React Developer',
+    company: 'StartupXYZ',
+    location: 'Remote',
+    type: 'Contract',
+    salary: '$80k - $120k',
+    description: 'Join our innovative startup as a frontend developer. Work on cutting-edge projects with a talented team.',
+    requirements: ['React', 'JavaScript', 'CSS3', 'Git', '3+ years experience'],
+    posted: '1 week ago',
+    urgent: false
+  },
+  {
+    id: '3',
+    title: 'DevOps Engineer',
+    company: 'CloudTech Solutions',
+    location: 'Austin, TX',
+    type: 'Full-time',
+    salary: '$100k - $150k',
+    description: 'Looking for a DevOps engineer to help us scale our infrastructure and improve our deployment processes.',
+    requirements: ['AWS', 'Docker', 'Kubernetes', 'CI/CD', 'Linux', '4+ years experience'],
+    posted: '3 days ago',
+    urgent: true
+  },
+  {
+    id: '4',
+    title: 'Backend Python Developer',
+    company: 'DataFlow Inc.',
+    location: 'New York, NY',
+    type: 'Full-time',
+    salary: '$90k - $140k',
+    description: 'Build robust backend systems for our data processing platform. Work with large-scale distributed systems.',
+    requirements: ['Python', 'Django/Flask', 'PostgreSQL', 'Redis', 'API Design'],
+    posted: '5 days ago',
+    urgent: false
+  }
+]
+
 export default function JobsPage() {
-  const { data: session, status } = useSession()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
-  const [jobs, setJobs] = useState<Job[]>([
-    {
-      id: '1',
-      title: 'Senior Full Stack Developer',
-      company: 'TechCorp Inc.',
-      location: 'San Francisco, CA',
-      type: 'Full-time',
-      salary: '$120k - $180k',
-      description: 'We are looking for a senior full stack developer to join our growing team. You will be responsible for developing and maintaining web applications using modern technologies.',
-      requirements: ['React', 'Node.js', 'TypeScript', 'PostgreSQL', '5+ years experience'],
-      posted: '2 days ago',
-      urgent: true
-    },
-    {
-      id: '2',
-      title: 'Frontend React Developer',
-      company: 'StartupXYZ',
-      location: 'Remote',
-      type: 'Contract',
-      salary: '$80k - $120k',
-      description: 'Join our innovative startup as a frontend developer. Work on cutting-edge projects with a talented team.',
-      requirements: ['React', 'JavaScript', 'CSS3', 'Git', '3+ years experience'],
-      posted: '1 week ago',
-      urgent: false
-    },
-    {
-      id: '3',
-      title: 'DevOps Engineer',
-      company: 'CloudTech Solutions',
-      location: 'Austin, TX',
-      type: 'Full-time',
-      salary: '$100k - $150k',
-      description: 'Looking for a DevOps engineer to help us scale our infrastructure and improve our deployment processes.',
-      requirements: ['AWS', 'Docker', 'Kubernetes', 'CI/CD', 'Linux', '4+ years experience'],
-      posted: '3 days ago',
-      urgent: true
-    },
-    {
-      id: '4',
-      title: 'Backend Python Developer',
-      company: 'DataFlow Inc.',
-      location: 'New York, NY',
-      type: 'Full-time',
-      salary: '$90k - $140k',
-      description: 'Build robust backend systems for our data processing platform. Work with large-scale distributed systems.',
-      requirements: ['Python', 'Django/Flask', 'PostgreSQL', 'Redis', 'API Design'],
-      posted: '5 days ago',
-      urgent: false
-    }
-  ])
   const [filteredJobs, setFilteredJobs] = useState(jobs)
 
   useEffect(() => {
